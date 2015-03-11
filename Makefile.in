@@ -1,0 +1,11 @@
+THIS := $(dir $(lastword $(MAKEFILE_LIST)))
+
+CXXFLAGS=-std=c++14 -I$(THIS)
+
+SOURCES += \
+	$(THIS)EventLoop.cpp \
+	$(THIS)SecureSocket.cpp  \
+	$(THIS)Stdio.cpp  \
+	$(THIS)Timer.cpp \
+	$(THIS)MqttClient.cpp \
+
