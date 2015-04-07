@@ -90,23 +90,25 @@ void Timer::doExpire()
 class Once : public Timer
 {
 public:
-    Once(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<void()> &fn)
+    Once(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn)
         : Timer(ev)
         , fn(fn)
     {
     }
 private:
-    std::function<void()> fn;
+    std::function<bool()> fn;
     virtual bool onExpired()
     {
-        fn();
-        delete this;
-        return false;
+        if (!fn()) {
+            delete this;
+            return false;
+        }
+        return true;
     }
 };
 
 
-void Timer::later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<void()> &fn, uint64_t ms)
+void Timer::later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn, uint64_t ms)
 {
     (new Once(ev, fn))->reset(ms);
 }

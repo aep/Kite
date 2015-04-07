@@ -237,6 +237,7 @@ void SecureSocketPrivate::d_connect()
             // probably because BIO_get_fd is garbage before connect?
             Timer::later(ev(), [this](){
                     d_connect();
+                    return false;
                     }, 100);
             return;
         }

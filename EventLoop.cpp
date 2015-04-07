@@ -117,6 +117,7 @@ void EventLoop::exit(int e)
     Timer::later(shared_from_this(), [this, e] () {
             p_exitCode = e;
             p_running = false;
+            return false;
     });
     write(p_intp[1], "\n", 1);
 }

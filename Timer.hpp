@@ -16,7 +16,7 @@ namespace Kite {
     class EventLoop;
     class Timer {
     public:
-        static void later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<void()> &fn, uint64_t ms = 1);
+        static void later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn, uint64_t ms = 1);
 
         Timer (const std::weak_ptr<Kite::EventLoop> &ev = std::weak_ptr<Kite::EventLoop>(), uint64_t expire = 0);
         ~Timer();
@@ -24,6 +24,10 @@ namespace Kite {
         uint64_t elapsed();
         uint64_t expires();
     protected:
+        /* called periodically
+         *
+         * return false to stop the timer and true to continue
+         */
         virtual bool onExpired(){}
 
         inline std::shared_ptr<EventLoop> ev() const { return p_ev.lock();}
