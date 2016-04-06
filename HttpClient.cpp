@@ -88,6 +88,7 @@ public:
         }
     }
 
+    std::map<std::string,std::string> headers;
 
     int responseCode;
     HttpClient::Status status;
@@ -156,11 +157,21 @@ void HttpClient::onConnected() {
 
     ss << "GET " << p->d_path << " HTTP/1.1\r\n";
     ss << "Host: " << p->d_host << "\r\n";
+
+    for (auto it = p->headers.begin(); it != p->headers.end(); ++it) {
+        ss << it->first << ": " << it->second << "\r\n";
+    }
+
     ss << "Connection: close\r\n";
     ss << "\r\n";
 
     write(ss.str().c_str(), ss.str().length());
 }
 
+
+void HttpClient::setHeaders(std::map<std::string,std::string> headers)
+{
+    p->headers = headers;
+}
 
 

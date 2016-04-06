@@ -20,10 +20,14 @@ protected:
         std::cerr << responseCode << std::endl;
         std::cerr << body;
 
-        if (e++ == 0)
-            get("http://google.com/");
-        else
+        if (e++ == 0) {
+            std::map<std::string, std::string> headers;
+            headers["X-DERP"]=  "funnies";
+            setHeaders(headers);
+            get("http://localhost:3000/");
+        } else {
             ev()->exit(9);
+        }
     }
 };
 

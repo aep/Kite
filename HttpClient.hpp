@@ -22,12 +22,12 @@ public:
     HttpClient(std::weak_ptr<Kite::EventLoop> ev);
     ~HttpClient();
 
+
+    void setHeaders(std::map<std::string,std::string> headers);
     void get(const std::string &url);
 
 protected:
     virtual void onFinished(Status status, int responseCode, const std::string &body) = 0;
-
-
 
     void onActivated (int) override;
     void onConnected () override;
