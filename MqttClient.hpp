@@ -37,7 +37,7 @@ protected:
     virtual void onProtocolError(ProtocolError e){}
 
     void onActivated (int) override final;
-    void onConnected ();
+    void onConnected () override;
 
 private:
     friend class MqttClientPrivate;

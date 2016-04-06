@@ -1,5 +1,5 @@
-#ifndef KITE_SSLSOCKET_HPP_KNMS
-#define KITE_SSLSOCKET_HPP_KNMS
+#ifndef KITE_UDPSERVER_HPP_KNMSS
+#define KITE_UDPSERVER_HPP_KNMSS
 
 #include <string>
 #include <memory>

@@ -42,7 +42,10 @@ uint64_t Timer::reset(uint64_t exp)
         if (p_expires > 0) {
             ev->p_timers.insert(this);
         } else {
-            ev->p_timers.erase(ev->p_timers.find(this), ev->p_timers.end());
+            auto fi = ev->p_timers.find(this);
+            if (fi != ev->p_timers.end()) {
+                ev->p_timers.erase(fi);
+            }
         }
     }
     return el;
@@ -87,7 +90,7 @@ void Timer::doExpire()
     }
 }
 
-class Once : public Timer
+class Kite::Once : public Timer
 {
 public:
     Once(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn)
@@ -97,19 +100,22 @@ public:
     }
 private:
     std::function<bool()> fn;
-    virtual bool onExpired()
+    //must be last on the callstack inside EventLoop because of delete this
+    virtual void doExpire() override
     {
-        if (!fn()) {
+        if (fn()) {
+            reset(p_period_intent);
+        } else {
+            reset(0);
             delete this;
-            return false;
         }
-        return true;
     }
 };
 
 
 void Timer::later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn, uint64_t ms)
 {
-    (new Once(ev, fn))->reset(ms);
+    Once *o = new Once(ev, fn);
+    o->reset(ms);
 }
 

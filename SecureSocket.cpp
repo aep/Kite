@@ -9,6 +9,9 @@
 
 using namespace Kite;
 
+//#define debugprintf(...) fprintf(stderr, __VA_ARGS__)
+#define debugprintf(...)
+
 //TODO: not thread safe
 static std::map<SSL  *, SecureSocket *> rebind_map;
 
@@ -52,12 +55,12 @@ void apps_ssl_info_callback(const SSL *s, int where, int ret)
     else str="undefined";
     if (where & SSL_CB_LOOP)
     {
-        fprintf(stderr,"%s:%s\n",str,SSL_state_string_long(s));
+        debugprintf("%s:%s\n",str,SSL_state_string_long(s));
     }
     else if (where & SSL_CB_ALERT)
     {
         str=(where & SSL_CB_READ)?"read":"write";
-        fprintf(stderr,"SSL3 alert %s:%s:%s\n",
+        debugprintf("SSL3 alert %s:%s:%s\n",
                 str,
                 SSL_alert_type_string_long(ret),
                 SSL_alert_desc_string_long(ret));
@@ -65,11 +68,11 @@ void apps_ssl_info_callback(const SSL *s, int where, int ret)
     else if (where & SSL_CB_EXIT)
     {
         if (ret == 0)
-            fprintf(stderr,"%s:failed in %s\n",
+            debugprintf("%s:failed in %s\n",
                     str,SSL_state_string_long(s));
         else if (ret < 0)
         {
-            fprintf(stderr,"%s:error in %s\n",
+            debugprintf("%s:error in %s\n",
                     str,SSL_state_string_long(s));
         }
     }
@@ -243,10 +246,10 @@ void SecureSocketPrivate::d_connect()
         }
         if (state != SecureSocket::SecureClientCertificateRequired) {
             const char *em = ERR_reason_error_string(ERR_get_error());
-            fprintf(stderr, "BIO_new_ssl_connect failed: %lu (0x%lx)\n", r, r);
-            fprintf(stderr, "Error: %s\n", em);
-            fprintf(stderr, "%s\n", ERR_error_string(ERR_get_error(), NULL));
-            fprintf(stderr,"p_ssl state: %s\n",SSL_state_string_long(ssl));
+            debugprintf( "BIO_new_ssl_connect failed: %u (0x%x)\n", r, r);
+            debugprintf( "Error: %s\n", em);
+            debugprintf( "%s\n", ERR_error_string(ERR_get_error(), NULL));
+            debugprintf("p_ssl state: %s\n",SSL_state_string_long(ssl));
             ERR_print_errors_fp(stderr);
             errorMessage = em ? em : "??";
             state        = SecureSocket::TransportErrror;

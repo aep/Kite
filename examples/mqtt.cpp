@@ -18,7 +18,7 @@ protected:
     }
     virtual void onMqttConnected() {
         fprintf(stderr, "omg MQTT is totally connected lol \n");
-//        subscribe("/#");
+        subscribe("/#");
     }
     virtual void onDisconnected(SocketState state) {
         fprintf(stderr, "disconnected: %i %s \n", state, errorMessage().c_str());
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
     client->setClientCertificateFile("/etc/x509/host.crt");
     client->setClientKeyFile("/etc/x509/host.key");
 
-    client->connect("b1.broker.airspot.airfy.com", 443, 5000);
+    client->connect("b1.armada", 443, 5000);
 
     std::cerr << "lopzing" << std::endl;
     return ev->exec();

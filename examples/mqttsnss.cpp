@@ -10,7 +10,6 @@
 #include "Timer.hpp"
 
 
-
 class MqttSnProtocol
 {
 public:
@@ -72,8 +71,8 @@ public:
 
 protected:
     virtual void onActivated(int);
-    virtual int send    (const char *data, int len, const InternetAddress &address) = 0;
-    virtual int receive (char *data, int len,  InternetAddress *address) = 0;
+    virtual int send    (const char *data, int len, const Kite::InternetAddress &address) = 0;
+    virtual int receive (char *data, int len,  Kite::InternetAddress *address) = 0;
 
     virtual void onConnect   (const Kite::InternetAddress &remote, const Flags &flags, uint8_t protocol, uint8_t duration, const std::string &name) = 0;
     virtual void onPublish   (const Kite::InternetAddress &remote, const Flags &flags, uint16_t topic, uint16_t mid, const std::string &data) = 0;
@@ -144,8 +143,6 @@ void MqttSnProtocol::onActivated(int)
                 uint16_t  mid   = ntohs(*(uint16_t*)(buf + 1));
                 buf += 3;
                 len -= 3;
-
-                Topic topic;
 
                 uint16_t topic_id = 0;
                 std::string topic_name;

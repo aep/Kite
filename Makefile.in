@@ -9,4 +9,5 @@ SOURCES += \
 	$(THIS)Timer.cpp \
 	$(THIS)MqttClient.cpp \
 	$(THIS)UdpServer.cpp \
+	$(THIS)HttpClient.cpp \
 

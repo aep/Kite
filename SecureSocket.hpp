@@ -39,7 +39,6 @@ namespace Kite {
 
         const std::string &errorMessage() const;
     protected:
-        virtual void onActivated (int) = 0;
         virtual void onConnected(){}
         virtual void onDisconnected(SocketState state){}
 
