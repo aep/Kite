@@ -23,6 +23,7 @@ public:
     SecureSocket::SocketState state;
     std::string errorMessage;
 
+    bool useTls;
     bool  hasTimeout;
     Timer connectionTimout;
 
@@ -177,8 +178,9 @@ void SecureSocket::disconnect()
     onDisconnected(p->state);
 }
 
-void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeout)
+void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeout, bool tls)
 {
+    p->useTls = tls;
     if (timeout > 0) {
         p->hasTimeout = true;
         p->connectionTimout.reset(timeout);
@@ -186,7 +188,11 @@ void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeo
     p->state   = Connecting;
     int r = 0;
 
-    p->bio = BIO_new_ssl_connect(p->ssl_ctx);
+    if (p->useTls) {
+        p->bio = BIO_new_ssl_connect(p->ssl_ctx);
+    } else {
+        p->bio = BIO_new_connect(hostname.c_str());
+    }
     if (!p->bio) {
         p->errorMessage = "BIO_new_ssl_connect returned NULL";
         p->state        = SecureSetupError;
@@ -196,26 +202,28 @@ void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeo
 
     BIO_set_nbio(p->bio, 1);
 
-    BIO_get_ssl(p->bio, &p->ssl);
-    if (!(p->ssl)) {
-        p->errorMessage = "BIO_get_ssl returned NULL";
-        p->state        = SecureSetupError;
-        disconnect();
-        return;
+    if (p->useTls) {
+        BIO_get_ssl(p->bio, &p->ssl);
+        if (!(p->ssl)) {
+            p->errorMessage = "BIO_get_ssl returned NULL";
+            p->state        = SecureSetupError;
+            disconnect();
+            return;
+        }
+
+        rebind_map.insert(std::make_pair(p->ssl, this));
+        auto cb = [](SSL *ssl, X509 **x509, EVP_PKEY **pkey) {
+            SecureSocket *that = rebind_map[ssl];
+            that->p->errorMessage = "Client Certificate Requested\n";
+            that->p->state = SecureClientCertificateRequired;
+            that->disconnect();
+            return 0;
+        };
+        SSL_CTX_set_client_cert_cb(p->ssl_ctx, cb);
+
+
+        SSL_set_mode(p->ssl, SSL_MODE_AUTO_RETRY);
     }
-
-    rebind_map.insert(std::make_pair(p->ssl, this));
-    auto cb = [](SSL *ssl, X509 **x509, EVP_PKEY **pkey) {
-        SecureSocket *that = rebind_map[ssl];
-        that->p->errorMessage = "Client Certificate Requested\n";
-        that->p->state = SecureClientCertificateRequired;
-        that->disconnect();
-        return 0;
-    };
-    SSL_CTX_set_client_cert_cb(p->ssl_ctx, cb);
-
-
-    SSL_set_mode(p->ssl, SSL_MODE_AUTO_RETRY);
     BIO_set_conn_hostname(p->bio, hostname.c_str());
     BIO_set_conn_int_port(p->bio, &port);
 
@@ -258,14 +266,16 @@ void SecureSocketPrivate::d_connect()
         return;
     }
 
-    auto result = SSL_get_verify_result(ssl);
-    if (result != X509_V_OK) {
-        std::stringstream str;
-        str << "Secure Peer Verification Errror " << result;
-        errorMessage = str.str();
-        state        = SecureSocket::SecurePeerNotVerified;
-        p->disconnect();
-        return;
+    if (useTls) {
+        auto result = SSL_get_verify_result(ssl);
+        if (result != X509_V_OK) {
+            std::stringstream str;
+            str << "Secure Peer Verification Errror " << result;
+            errorMessage = str.str();
+            state        = SecureSocket::SecurePeerNotVerified;
+            p->disconnect();
+            return;
+        }
     }
 
     int fd = 0;

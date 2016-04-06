@@ -16,11 +16,12 @@ protected:
     int e = 0;
     virtual void onFinished(Status status, int responseCode, const std::string &body) override
     {
+        std::cerr << errorMessage() << std::endl;
         std::cerr << responseCode << std::endl;
         std::cerr << body;
 
         if (e++ == 0)
-            get("https://google.com/");
+            get("http://google.com/");
         else
             ev()->exit(9);
     }

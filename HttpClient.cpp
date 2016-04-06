@@ -126,7 +126,7 @@ void HttpClient::get(const std::string &url)
     p->setUrl(url, "GET");
     p->status = Kite::HttpClient::Connecting;
 
-    connect(p->d_host, p->d_port, 5000);
+    connect(p->d_host, p->d_port, 5000, p->d_is_https);
 }
 
 void HttpClient::onActivated(int)

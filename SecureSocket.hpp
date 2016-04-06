@@ -30,7 +30,7 @@ namespace Kite {
         bool setClientKeyFile(const std::string &path);
 
         SocketState state() const;
-        void connect(const std::string &hostname, int port, uint64_t timeout = 0);
+        void connect(const std::string &hostname, int port, uint64_t timeout = 0, bool tls = false);
         void disconnect();
 
         int write(const char *data, int len);
