@@ -207,7 +207,7 @@ void MqttClient::onConnected() {
     fprintf(stderr, "connected!\n");
     bool    cleansess = false;
 
-    Frame frame(Frame::CONNECT, 1);
+    Frame frame(Frame::CONNECT, 0);
     frame.writeString(PROTOCOL_MAGIC);
     frame.writeByte(MQTT_PROTO_MAJOR);
 
