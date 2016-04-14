@@ -12,18 +12,27 @@
  ** 2. getting the time elapsed since the last call to reset()
  **/
 
+
+
+#define  KITE_TIMER_DEBUG_NAME(timer, name) (timer)->k__debugName = name;
+
 namespace Kite {
     class EventLoop;
     class Once;
     class Timer {
     public:
-        static void later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn, uint64_t ms = 1);
+        static void later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn,
+                uint64_t ms = 1,
+                const char *name = "later");
 
-        Timer (const std::weak_ptr<Kite::EventLoop> &ev = std::weak_ptr<Kite::EventLoop>(), uint64_t expire = 0);
+        Timer (const std::weak_ptr<Kite::EventLoop> &ev, uint64_t expire = 0);
         ~Timer();
         uint64_t reset(uint64_t expire = 0);
         uint64_t elapsed();
         uint64_t expires();
+
+        const char *k__debugName;
+
     protected:
         /* called periodically
          *

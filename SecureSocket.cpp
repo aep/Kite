@@ -34,6 +34,7 @@ public:
         : Kite::Evented(ev)
         , connectionTimout(ev)
     {
+        KITE_TIMER_DEBUG_NAME(&connectionTimout, "Kite::SecureSocketPrivate::connectionTimout");
     }
     virtual void onActivated (int)
     {
@@ -249,7 +250,7 @@ void SecureSocketPrivate::d_connect()
             Timer::later(ev(), [this](){
                     d_connect();
                     return false;
-                    }, 100);
+                    }, 100, "BIO_should_retry");
             return;
         }
         if (state != SecureSocket::SecureClientCertificateRequired) {
@@ -302,6 +303,7 @@ int SecureSocket::write(const char *data, int len)
     do {
         r = BIO_write(p->bio, data, len);
     } while (r < 0 && BIO_should_retry(p->bio));
+    return len;
 }
 
 int SecureSocket::read (char *data, int len)

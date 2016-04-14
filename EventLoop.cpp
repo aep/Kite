@@ -80,6 +80,7 @@ int EventLoop::exec()
                 timeout = tt;
         }
 
+
         int    pollnum = p_evs.size() + 1;
         struct pollfd fds[pollnum];
 
@@ -95,7 +96,9 @@ int EventLoop::exec()
             it++;
         }
 
+
         int ret =  poll(fds, pollnum, timeout);
+
 
         //copy list of fds because it might be modified inside activated()
         auto evs = p_evs;
@@ -121,6 +124,6 @@ void EventLoop::exit(int e)
             p_exitCode = e;
             p_running = false;
             return false;
-    });
+    }, 1, "exit");
     write(p_intp[1], "\n", 1);
 }

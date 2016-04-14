@@ -73,14 +73,20 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-struct Kite::MqttClientPrivate
+class Kite::MqttClientPrivate : public Kite::Timer
 {
+public:
+    MqttClientPrivate(std::weak_ptr<Kite::EventLoop> ev)
+        : Kite::Timer(ev)
+    {
+        KITE_TIMER_DEBUG_NAME(this, "MqttClientPrivate");
+    }
+
     Kite::MqttClient *p;
     std::string clientId;
     std::string username;
     std::string password;
     int keepAlive;
-    Timer seenServer;
     std::vector<char> buffer;
     int expectedSize;
     uint8_t nextHeader;
@@ -105,19 +111,34 @@ struct Kite::MqttClientPrivate
     void onPUBACK  (Frame &frame);
     void onSUBACK  (Frame &frame);
     void onPUBLISH (Frame &frame);
+
+    bool isConnected;
+
+    virtual bool onExpired() override {
+        if (!isConnected)
+            return true;
+
+        Frame frame(Frame::PINGREQ, 0);
+        frame.parcel(p);
+        p->flush();
+
+        return true;
+    }
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
 MqttClient::MqttClient(std::weak_ptr<Kite::EventLoop> ev)
     : Kite::SecureSocket(ev)
-    , p(new MqttClientPrivate)
+    , p(new MqttClientPrivate(ev))
 {
     p->p = this;
     p->keepAlive = 3;
     p->clientId  = "kitemqtt";
     p->expectedSize = 0;
     p->nextMessageId = 1;
+    p->isConnected = false;
 }
 
 MqttClient::~MqttClient()
@@ -133,6 +154,7 @@ void MqttClient::setClientId(const std::string &v)
 void MqttClient::setKeepAlive(int v)
 {
     p->keepAlive = v;
+    p->reset(p->keepAlive * 1000);
 }
 
 void MqttClient::onActivated(int)
@@ -228,7 +250,7 @@ void MqttClient::onConnected() {
         flags = FLAG_PASSWD(flags, 1);
     }
     frame.writeByte(flags);
-    frame.writeInt(p->keepAlive);
+    frame.writeInt(p->keepAlive * 2);
     frame.writeString(p->clientId);
     /*
        if(will != NULL) {
@@ -246,6 +268,8 @@ void MqttClient::onConnected() {
 
     frame.parcel(this);
     flush();
+    p->isConnected = true;
+    p->reset(p->keepAlive * 1000);
 }
 
 

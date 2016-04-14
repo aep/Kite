@@ -14,6 +14,8 @@ Timer::Timer(const std::weak_ptr<EventLoop> &ev, uint64_t exp)
     ,p_period_intent(0)
 {
     reset(exp);
+
+    k__debugName = "";
 }
 Timer::~Timer()
 {
@@ -40,11 +42,15 @@ uint64_t Timer::reset(uint64_t exp)
     auto ev = p_ev.lock();
     if (ev) {
         if (p_expires > 0) {
+            int cbefore = ev->p_timers.size();
             ev->p_timers.insert(this);
+   //         std::cerr << "T " << this <<  " " <<  k__debugName << " insert " << exp << " " << cbefore << "->" << ev->p_timers.size() << std::endl;
         } else {
             auto fi = ev->p_timers.find(this);
             if (fi != ev->p_timers.end()) {
+            int cbefore = ev->p_timers.size();
                 ev->p_timers.erase(fi);
+    //           std::cerr << "T " << this <<  " " <<  k__debugName << " erase " << " " << cbefore << "->" << ev->p_timers.size() << std::endl;
             }
         }
     }
@@ -113,9 +119,11 @@ private:
 };
 
 
-void Timer::later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn, uint64_t ms)
+void Timer::later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn, uint64_t ms, const char *name)
 {
     Once *o = new Once(ev, fn);
+    o->k__debugName = name;
     o->reset(ms);
+
 }
 
