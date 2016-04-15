@@ -97,7 +97,7 @@ int EventLoop::exec()
         }
 
 
-        int ret =  poll(fds, pollnum, timeout);
+        int ret = poll(fds, pollnum, timeout);
 
 
         //copy list of fds because it might be modified inside activated()
@@ -106,7 +106,8 @@ int EventLoop::exec()
         i = 1;
         it = evs.begin();
         while (it != evs.end()) {
-            if (fds[i].revents & POLLIN) {
+            if (fds[i].revents) {
+            //if (fds[i].revents & POLLIN) {
                 auto ev = it->second;
                 ev->onActivated(fds[i].fd);
             }

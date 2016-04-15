@@ -9,6 +9,7 @@ class Clock: public Kite::Timer
 public:
     Clock(std::weak_ptr<Kite::EventLoop> ev)
         : Kite::Timer(ev)
+        , wall(ev)
     {
     }
     Kite::Timer wall;
