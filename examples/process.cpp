@@ -5,18 +5,15 @@
 #include <fcntl.h>
 
 #include "EventLoop.hpp"
-#include "File.hpp"
+#include "Process.hpp"
 
-class LS: public Kite::File
+class LS: public Kite::Process
 {
 public:
     LS(std::weak_ptr<Kite::EventLoop> ev)
-        : Kite::File(ev)
+        : Kite::Process(ev)
     {
-        FILE *f = popen("ls /", "r");
-        int fd = fileno(f);
-//        fcntl(fd, F_SETFL, O_NONBLOCK);
-        setFile(fd);
+        popen("ls /", "r");
     }
 
 protected:
@@ -26,6 +23,7 @@ protected:
         int len = read(buf, 1024);
         std::cerr << len << std::endl;
         if (len == 0) {
+            close();
             ev()->exit(0);
             return;
         }

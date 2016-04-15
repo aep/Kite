@@ -11,4 +11,5 @@ SOURCES += \
 	$(THIS)UdpServer.cpp \
 	$(THIS)HttpClient.cpp \
 	$(THIS)File.cpp \
+	$(THIS)Process.cpp \
 
