@@ -22,6 +22,16 @@ Timer::~Timer()
     reset(0);
 }
 
+uint64_t Timer::now()
+{
+    struct timespec begin;
+    if (clock_gettime(CLOCK_REALTIME, &begin)) {
+        throw std::runtime_error("Kite::Timer: no clock :(");
+    }
+    return begin.tv_sec  * 1000
+         + begin.tv_nsec * 1e-6;
+}
+
 uint64_t Timer::reset(uint64_t exp)
 {
     p_period_intent = exp;
@@ -30,8 +40,7 @@ uint64_t Timer::reset(uint64_t exp)
 
     struct timespec begin;
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &begin)) {
-        //TODO  Oops, getting clock time failed
-        std::cerr << "Kite::Timer: no clock :(" << std::endl;
+        throw std::runtime_error("Kite::Timer: no clock :(");
         p_start = 0;
         return el;
     }

@@ -21,6 +21,8 @@ namespace Kite {
     class Once;
     class Timer {
     public:
+        static uint64_t now();
+
         static void later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn,
                 uint64_t ms = 1,
                 const char *name = "later");
