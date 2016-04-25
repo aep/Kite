@@ -192,7 +192,9 @@ void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeo
     if (p->useTls) {
         p->bio = BIO_new_ssl_connect(p->ssl_ctx);
     } else {
-        p->bio = BIO_new_connect(hostname.c_str());
+        std::vector<char> host_c(hostname.begin(), hostname.end());
+        host_c.push_back('\0');
+        p->bio = BIO_new_connect(&host_c[0]);
     }
     if (!p->bio) {
         p->errorMessage = "BIO_new_ssl_connect returned NULL";
