@@ -21,7 +21,6 @@ protected:
     {
         char buf[1024];
         int len = read(buf, 1024);
-        std::cerr << len << std::endl;
         if (len == 0) {
             close();
             ev()->exit(0);
@@ -35,5 +34,12 @@ int main()
 {
     std::shared_ptr<Kite::EventLoop> ev(new Kite::EventLoop);
     std::shared_ptr<LS>         ls(new LS(ev));
+
+
+    //or simpler but blocking
+
+    std::string output = Kite::Process::shell("ls /");
+    std::cout << output << std::endl;
+
     return ev->exec();
 }
