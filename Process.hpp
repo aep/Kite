@@ -17,7 +17,7 @@ namespace Kite {
         virtual int write(const char *buf, int len);
 
 
-        static std::string shell(const std::string &cmd, int timeout = 0);
+        static std::string shell(const std::string &cmd, int timeout = 5000);
 
     private:
         FILE *d_f;
