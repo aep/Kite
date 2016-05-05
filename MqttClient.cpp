@@ -86,6 +86,12 @@ public:
     std::string clientId;
     std::string username;
     std::string password;
+
+    std::string willTopic;
+    std::string willMessage;
+    int willQos;
+    bool willRetain;
+
     int keepAlive;
     std::vector<char> buffer;
     int expectedSize;
@@ -155,6 +161,14 @@ void MqttClient::setKeepAlive(int v)
 {
     p->keepAlive = v;
     p->reset(p->keepAlive * 1000);
+}
+
+void MqttClient::setWill(const std::string &topic, const std::string &message, int qos, bool retain)
+{
+    p->willTopic   = topic;
+    p->willMessage = message;
+    p->willQos     = qos;
+    p->willRetain  = retain;
 }
 
 void MqttClient::onActivated(int)
@@ -236,13 +250,12 @@ void MqttClient::onConnected() {
     uint8_t flags = 0;
     //flags
     flags = FLAG_CLEANSESS(flags, cleansess ? 1 : 0 );
-    /*
-       flags = FLAG_WILL(flags, will ? 1 : 0);
-       if (!willTopic.isEmpty()) {
-       flags = FLAG_WILLQOS(flags, will->qos());
-       flags = FLAG_WILLRETAIN(flags, will->retain() ? 1 : 0);
-       }
-       */
+
+    if (!p->willTopic.empty()) {
+        flags = FLAG_WILL(flags, 1);
+        flags = FLAG_WILLQOS(flags, p->willQos);
+        flags = FLAG_WILLRETAIN(flags, p->willRetain ? 1 : 0);
+    }
     if(!p->username.empty()) {
         flags = FLAG_USERNAME(flags, 1);
     }
@@ -252,12 +265,10 @@ void MqttClient::onConnected() {
     frame.writeByte(flags);
     frame.writeInt(p->keepAlive * 2);
     frame.writeString(p->clientId);
-    /*
-       if(will != NULL) {
-       frame.writeString(will->topic());
-       frame.writeString(will->message());
-       }
-       */
+    if (!p->willTopic.empty()) {
+        frame.writeString(p->willTopic);
+        frame.writeString(p->willMessage);
+    }
     if (!p->username.empty()) {
         frame.writeString(p->username);
     }
@@ -274,7 +285,7 @@ void MqttClient::onConnected() {
 
 
 
-void MqttClient::publish(const std::string &topic, const std::string &message, int qos)
+void MqttClient::publish(const std::string &topic, const std::string &message, int qos, bool retain)
 {
     Frame frame(Frame::PUBLISH, qos);
     frame.writeString(topic);

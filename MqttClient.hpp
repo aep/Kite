@@ -26,10 +26,11 @@ public:
     void setClientId       (const std::string &id);
     void setUsername       (const std::string &username);
     void setPassword       (const std::string &password);
+    void setWill           (const std::string &topic, const std::string &message, int qos = 1, bool retain = false);
 
     void subscribe   (const std::string &topic, int qos = 1);
     void unsubscribe (const std::string &topic, int qos = 1);
-    void publish     (const std::string &topic, const std::string &message, int qos = 1);
+    void publish     (const std::string &topic, const std::string &message, int qos = 1, bool retain = false);
 
 protected:
     virtual void onMqttConnected () {};
