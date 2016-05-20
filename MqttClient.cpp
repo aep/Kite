@@ -217,7 +217,7 @@ void MqttClient::onActivated(int)
 
 
         Frame frame(p->nextHeader, data);
-        std::cerr << "msg type" << frame.type << std::endl;
+        //std::cerr << "msg type" << frame.type << std::endl;
         switch (frame.type) {
             case Frame::CONNACK:
                 p->onCONNACK(frame);

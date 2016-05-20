@@ -32,13 +32,9 @@ void Process::popen(const std::string &cmd)
         ::close(d_pipein[1]);
         ::close(d_pipeout[0]);
 
-        std::cerr << "inside child"<< std::endl;
-
         dup2(d_pipein[0], STDIN_FILENO);
         dup2(d_pipeout[1], STDOUT_FILENO);
         dup2(d_pipeout[1], STDERR_FILENO);
-
-        std::cerr << "inside child after dup"<< std::endl;
 
         execl("/bin/sh", "sh", "-c", cmd.c_str(), (char *)NULL);
         exit(1);
