@@ -175,9 +175,8 @@ void HttpClient::onConnected() {
 
     if (p->d_verb == "POST") {
         ss << "Content-Length: " << p->d_post_body.length() << "\r\n";
-    } else {
-        ss << "Connection: close\r\n";
     }
+    ss << "Connection: close\r\n";
     ss << "\r\n";
     ss << p->d_post_body;
 
