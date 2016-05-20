@@ -1,6 +1,7 @@
 THIS := $(dir $(lastword $(MAKEFILE_LIST)))
 
 CXXFLAGS +=-std=c++14 -I$(THIS)
+LDFLAGS  += -lpthread -lssl -lcrypto
 
 SOURCES += \
 	$(THIS)EventLoop.cpp \
@@ -12,4 +13,5 @@ SOURCES += \
 	$(THIS)HttpClient.cpp \
 	$(THIS)File.cpp \
 	$(THIS)Process.cpp \
+	$(THIS)forkfd.c \
 

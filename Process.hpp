@@ -10,17 +10,24 @@ namespace Kite {
     public:
         Process(std::weak_ptr<EventLoop> ev);
 
-        void popen(const std::string &cmd, const char *ch);
+        void popen(const std::string &cmd);
         void close();
 
         virtual int read(char *buf, int len);
         virtual int write(const char *buf, int len);
 
-
         static std::string shell(const std::string &cmd, int timeout = 5000);
 
+    protected:
+        virtual void onActivated(int e) override final;
+        virtual void onReadActivated() {};
+        virtual void onClosing() {}
+
     private:
-        FILE *d_f;
+        int d_pipein[2];
+        int d_pipeout[2];
+        int d_pid;
+        int d_forkfd;
 
     };
 };

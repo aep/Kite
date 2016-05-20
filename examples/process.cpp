@@ -13,11 +13,11 @@ public:
     LS(std::weak_ptr<Kite::EventLoop> ev)
         : Kite::Process(ev)
     {
-        popen("ls /", "r");
+        popen("ls /");
     }
 
 protected:
-    virtual void onActivated(int) override
+    virtual void onReadActivated() override
     {
         char buf[1024];
         int len = read(buf, 1024);
