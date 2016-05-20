@@ -99,9 +99,11 @@ public:
     std::string d_host;
     int         d_port;
     std::string d_path;
+    std::string d_post_body;
     friend class HttpClient;
 
     std::string p_buf;
+
 
     HttpClient *p;
 };
@@ -126,6 +128,15 @@ void HttpClient::get(const std::string &url)
 {
     p->setUrl(url, "GET");
     p->status = Kite::HttpClient::Connecting;
+
+    connect(p->d_host, p->d_port, 5000, p->d_is_https);
+}
+
+void HttpClient::post(const std::string &url, const std::string &body)
+{
+    p->setUrl(url, "POST");
+    p->status = Kite::HttpClient::Connecting;
+    p->d_post_body = body;
 
     connect(p->d_host, p->d_port, 5000, p->d_is_https);
 }
@@ -155,15 +166,20 @@ void HttpClient::onConnected() {
 
     std::stringstream ss;
 
-    ss << "GET " << p->d_path << " HTTP/1.1\r\n";
+    ss << p->d_verb << " " << p->d_path << " HTTP/1.1\r\n";
     ss << "Host: " << p->d_host << "\r\n";
 
     for (auto it = p->headers.begin(); it != p->headers.end(); ++it) {
         ss << it->first << ": " << it->second << "\r\n";
     }
 
-    ss << "Connection: close\r\n";
+    if (p->d_verb == "POST") {
+        ss << "Content-Length: " << p->d_post_body.length() << "\r\n";
+    } else {
+        ss << "Connection: close\r\n";
+    }
     ss << "\r\n";
+    ss << p->d_post_body;
 
     write(ss.str().c_str(), ss.str().length());
 }

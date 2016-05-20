@@ -24,7 +24,7 @@ protected:
             std::map<std::string, std::string> headers;
             headers["X-DERP"]=  "funnies";
             setHeaders(headers);
-            get("http://localhost:3000/");
+            post("http://localhost:8000/", "turbo");
         } else {
             ev()->exit(9);
         }

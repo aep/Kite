@@ -25,6 +25,7 @@ public:
 
     void setHeaders(std::map<std::string,std::string> headers);
     void get(const std::string &url);
+    void post(const std::string &url, const std::string &body);
 
 protected:
     virtual void onFinished(Status status, int responseCode, const std::string &body) = 0;
