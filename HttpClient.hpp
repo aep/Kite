@@ -29,10 +29,11 @@ public:
 
 protected:
     virtual void onFinished(Status status, int responseCode, const std::string &body) = 0;
+    virtual void onReadActivated();
 
-    void onActivated (int) override;
-    void onConnected () override;
-    void onDisconnected(SocketState state) override;
+    void onActivated (int) override final;
+    void onConnected () override final;
+    void onDisconnected(SocketState state) override final;
 
 private:
     friend class HttpClientPrivate;

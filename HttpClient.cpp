@@ -55,24 +55,6 @@ public:
         }
     }
 
-    void d_write(const char *buf, int len)
-    {
-        if (p_buf.length() + len > 4048)
-            throw std::runtime_error("overflow");
-
-        p_buf.reserve(p_buf.length() + len);
-
-        for (int i = 0; i < len; i++) {
-            p_buf += buf[i];
-            if (state < HttpClient::HeaderCompleted) {
-                if (buf[i] == '\n') {
-                    onLine(p_buf);
-                    p_buf.clear();
-                }
-            } else {
-            }
-        }
-    }
     void onLine(const std::string &line)
     {
         if (state == Kite::HttpClient::Connected) {
@@ -143,17 +125,42 @@ void HttpClient::post(const std::string &url, const std::string &body)
 
 void HttpClient::onActivated(int)
 {
-    char buf [102];
-    int r = read(buf, 100);
-    buf[r] = 0;
+    if (p->state < HttpClient::HeaderCompleted) {
+        if (p->p_buf.length() >= 4048) {
+            throw std::runtime_error("overflow");
+        }
+        char c;
+        int len = read(&c, 1);
+        if (len != 1) {
+            disconnect();
+            return;
+        }
 
-    p->d_write(buf, r);
+        p->p_buf += c;
+        if (c == '\n') {
+            p->onLine(p->p_buf);
+            p->p_buf.clear();
+        }
+        //return get activated again.
+        //TODO overhead ok for header?
+    } else {
+        onReadActivated();
+    }
+}
 
 
-    if (r == 0) {
+void HttpClient::onReadActivated()
+{
+    char buf[1024];
+    int len = read(buf, 1024);
+    if (len < 1) {
         disconnect();
         return;
     }
+    if (p->p_buf.length() + len >= 4048) {
+        throw std::runtime_error("overflow");
+    }
+    p->p_buf += std::string(buf, len);
 }
 
 void HttpClient::onDisconnected(SocketState state)
