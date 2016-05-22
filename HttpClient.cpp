@@ -1,4 +1,5 @@
 #include "HttpClient.hpp"
+#include "Util.hpp"
 #include "Timer.hpp"
 #include <iostream>
 #include <sstream>
@@ -23,6 +24,11 @@ public:
         d_host.clear();
         d_verb = verb;
         p_buf.clear();
+        responseCode = 999;
+        d_content_length = 0;
+        responseHeaders.clear();
+        d_post_body.clear();
+
 
         std::istringstream ss(url);
         std::string token;
@@ -66,13 +72,30 @@ public:
         } else {
             if (line == "\r\n") {
                 state = HttpClient::HeaderCompleted;
+                p->onHeadersReady(responseHeaders);
+            } else {
+                std::istringstream ss(line);
+                std::string key;
+                std::getline(ss, key, ':');
+                std::string value(std::istreambuf_iterator<char>(ss), {});
+
+                Kite::trim(key);
+                Kite::trim(value);
+
+                if (key == "Content-Length") {
+                    d_content_length = std::stoi(value);
+                }
+
+                responseHeaders[key] = value;
             }
         }
     }
 
-    std::map<std::string,std::string> headers;
+    std::map<std::string,std::string> requestHeaders;
+    std::map<std::string,std::string> responseHeaders;
 
     int responseCode;
+    int d_content_length;
     HttpClient::Status status;
     int state;
 
@@ -123,11 +146,14 @@ void HttpClient::post(const std::string &url, const std::string &body)
     connect(p->d_host, p->d_port, 5000, p->d_is_https);
 }
 
+
 void HttpClient::onActivated(int)
 {
     if (p->state < HttpClient::HeaderCompleted) {
         if (p->p_buf.length() >= 4048) {
-            throw std::runtime_error("overflow");
+            std::cerr << "warning: internal HttpClient buffer overflow" << std::endl;
+            disconnect();
+            return;
         }
         char c;
         int len = read(&c, 1);
@@ -176,7 +202,7 @@ void HttpClient::onConnected() {
     ss << p->d_verb << " " << p->d_path << " HTTP/1.1\r\n";
     ss << "Host: " << p->d_host << "\r\n";
 
-    for (auto it = p->headers.begin(); it != p->headers.end(); ++it) {
+    for (auto it = p->requestHeaders.begin(); it != p->requestHeaders.end(); ++it) {
         ss << it->first << ": " << it->second << "\r\n";
     }
 
@@ -191,9 +217,9 @@ void HttpClient::onConnected() {
 }
 
 
-void HttpClient::setHeaders(std::map<std::string,std::string> headers)
+void HttpClient::setHeaders(std::map<std::string,std::string> requestHeaders)
 {
-    p->headers = headers;
+    p->requestHeaders = requestHeaders;
 }
 
 

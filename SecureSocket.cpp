@@ -260,9 +260,11 @@ void SecureSocketPrivate::d_connect()
             debugprintf( "BIO_new_ssl_connect failed: %u (0x%x)\n", r, r);
             debugprintf( "Error: %s\n", em);
             debugprintf( "%s\n", ERR_error_string(ERR_get_error(), NULL));
-            debugprintf("p_ssl state: %s\n",SSL_state_string_long(ssl));
+            if (useTls) {
+                debugprintf("p_ssl state: %s\n",SSL_state_string_long(ssl));
+            }
             ERR_print_errors_fp(stderr);
-            errorMessage = em ? em : "??";
+            errorMessage = std::string(em ? strdup(em) : "??");
             state        = SecureSocket::TransportErrror;
         }
         p->disconnect();
