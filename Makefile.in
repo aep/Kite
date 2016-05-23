@@ -13,5 +13,5 @@ SOURCES += \
 	$(THIS)HttpClient.cpp \
 	$(THIS)File.cpp \
 	$(THIS)Process.cpp \
-	$(THIS)forkfd.c \
+	$(THIS)forkfd.cpp \
 
