@@ -1,6 +1,6 @@
 THIS := $(dir $(lastword $(MAKEFILE_LIST)))
 
-CXXFLAGS +=-std=c++14 -I$(THIS)
+CXXFLAGS +=-std=c++11 -I$(THIS)
 LDFLAGS  += -lpthread -lssl -lcrypto
 
 SOURCES += \

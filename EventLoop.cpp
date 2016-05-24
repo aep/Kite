@@ -1,6 +1,5 @@
 #include "EventLoop.hpp"
 #include "Timer.hpp"
-#include <stropts.h>
 #include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
