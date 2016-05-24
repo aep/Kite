@@ -4,6 +4,11 @@
 #include <algorithm>
 #include <time.h>
 
+#ifndef CLOCK_MONOTONIC_RAW
+#warning "CLOCK_MONOTONIC_RAW undefined. Workaround might break"
+#define CLOCK_MONOTONIC_RAW 4
+#endif
+
 using namespace Kite;
 
 
