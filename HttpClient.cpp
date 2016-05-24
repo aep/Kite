@@ -5,6 +5,8 @@
 #include <sstream>
 #include <string>
 #include <stdexcept>
+#include "3rdparty/uri-parser/UriParser.hpp"
+#include "3rdparty/base64/base64.h"
 
 using namespace Kite;
 
@@ -30,35 +32,37 @@ public:
         d_post_body.clear();
 
 
-        std::istringstream ss(url);
-        std::string token;
+        std::string url_(url);
+        http::url parsed = http::ParseHttpUrl(url_);
 
-        int at = 0;
-
-        while (std::getline(ss, token, '/')) {
-
-            if (at == 0) {
-                if (token == "https:") {
-                    d_is_https = true;
-                } else if (token == "http:") {
-                    d_is_https = false;
-                } else {
-                    throw std::invalid_argument("unsupported url schema " + token);
-                }
-            } else if (at == 2) {
-                std::istringstream s2(token);
-                std::getline(s2, d_host, ':');
-                std::getline(s2, token,  ':');
-                try {
-                    d_port = std::stoi(token);
-                } catch (std::invalid_argument&) {
-                    d_port = d_is_https ? 443 : 80;
-                }
-            } else if (at > 2) {
-                d_path += "/" + token;
+        d_port = parsed.port;
+        if (parsed.protocol == "http") {
+            d_is_https = false;
+            if (d_port == 0) {
+                d_port = 80;
             }
-            ++at;
+        } else if (parsed.protocol == "https") {
+            d_is_https = true;
+            if (d_port == 0) {
+                d_port = 443;
+            }
+        } else {
+            throw std::invalid_argument("unsupported url schema " + parsed.protocol);
         }
+
+        d_host = parsed.host;
+        d_path = parsed.path;
+
+        if (parsed.user.empty()) {
+            d_auth = std::string();
+        } else {
+            d_auth = std::string();
+            if (!Base64::Encode(parsed.user + ":" + parsed.password, &d_auth)) {
+                throw std::invalid_argument("base64 on basic auth failed");
+            }
+            d_auth = "Basic " + d_auth;
+        }
+
     }
 
     void onLine(const std::string &line)
@@ -105,6 +109,7 @@ public:
     int         d_port;
     std::string d_path;
     std::string d_post_body;
+    std::string d_auth;
     friend class HttpClient;
 
     std::string p_buf;
@@ -209,6 +214,10 @@ void HttpClient::onConnected() {
     if (p->d_verb == "POST") {
         ss << "Content-Length: " << p->d_post_body.length() << "\r\n";
     }
+    if (!p->d_auth.empty()) {
+        ss << "Authorization: " << p->d_auth << "\r\n";
+    }
+
     ss << "Connection: close\r\n";
     ss << "\r\n";
     ss << p->d_post_body;

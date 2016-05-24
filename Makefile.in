@@ -14,4 +14,5 @@ SOURCES += \
 	$(THIS)File.cpp \
 	$(THIS)Process.cpp \
 	$(THIS)forkfd.cpp \
+	$(THIS)3rdparty/uri-parser/UriCodec.cpp \
 

@@ -1,0 +1,6 @@
+[submodule "3rdparty/uri-parser"]
+	path = 3rdparty/uri-parser
+    url = https://github.com/CovenantEyes/uri-parser.git
+[submodule "3rdparty/base64"]
+	path = 3rdparty/base64
+    url = https://github.com/tkislan/base64.git
