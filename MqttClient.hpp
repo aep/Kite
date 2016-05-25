@@ -21,6 +21,7 @@ public:
     MqttClient(std::weak_ptr<Kite::EventLoop> ev);
     ~MqttClient();
 
+    void setCleanSession   (bool clean);
     void setReconnect      (bool re);
     void setKeepAlive      (int seconds);
     void setClientId       (const std::string &id);

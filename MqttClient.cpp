@@ -92,6 +92,8 @@ public:
     int willQos;
     bool willRetain;
 
+    bool cleanSess;
+
     int keepAlive;
     std::vector<char> buffer;
     int expectedSize;
@@ -145,11 +147,17 @@ MqttClient::MqttClient(std::weak_ptr<Kite::EventLoop> ev)
     p->expectedSize = 0;
     p->nextMessageId = 1;
     p->isConnected = false;
+    p->cleanSess = false;
 }
 
 MqttClient::~MqttClient()
 {
     delete p;
+}
+
+void MqttClient::setCleanSession   (bool clean)
+{
+    p->cleanSess = clean;
 }
 
 void MqttClient::setClientId(const std::string &v)
@@ -241,7 +249,6 @@ void MqttClient::onActivated(int)
 
 void MqttClient::onConnected() {
     fprintf(stderr, "connected!\n");
-    bool    cleansess = false;
 
     Frame frame(Frame::CONNECT, 0);
     frame.writeString(PROTOCOL_MAGIC);
@@ -249,7 +256,7 @@ void MqttClient::onConnected() {
 
     uint8_t flags = 0;
     //flags
-    flags = FLAG_CLEANSESS(flags, cleansess ? 1 : 0 );
+    flags = FLAG_CLEANSESS(flags, p->cleanSess? 1 : 0 );
 
     if (!p->willTopic.empty()) {
         flags = FLAG_WILL(flags, 1);
