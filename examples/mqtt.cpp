@@ -50,7 +50,7 @@ protected:
             lb.push_back(c);
             return;
         }
-        mc.lock()->publish("warf", lb);
+        mc.lock()->publish("/warf", lb);
         lb.clear();
     }
 };
@@ -62,12 +62,12 @@ int main(int argc, char **argv)
     std::shared_ptr<Stdio>           stdio(new Stdio(ev, client));
 
     client->setKeepAlive(5);
-    client->setClientId("dildocopter");
+    client->setClientId("derp" + std::to_string((long)argv));
     client->setCaFile("/etc/x509/ca.crt");
     client->setClientCertificateFile("/etc/x509/host.crt");
     client->setClientKeyFile("/etc/x509/host.key");
 
-    client->connect("b1.armada", 443, 5000);
+    client->connect("localhost", 1883, 5000);
 
     std::cerr << "lopzing" << std::endl;
     return ev->exec();

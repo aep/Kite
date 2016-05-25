@@ -336,14 +336,16 @@ void MqttClientPrivate::onSUBACK  (Frame &frame)  {
 }
 void MqttClientPrivate::onPUBLISH (Frame &frame)  {
     std::string topic = frame.readString();
-
+    uint16_t mid = 0;
+    if (frame.qos > 0) {
+        mid = frame.readInt();
+    }
     std::string m  = frame.data;
     p->onPublished(topic, m);
 
     if (frame.qos == 1) {
-        auto id = frame.readInt();
         Frame frame(Frame::PUBACK, 0);
-        frame.writeInt(id);
+        frame.writeInt(mid);
         frame.parcel(p);
         p->flush();
     } else if (frame.qos == 2) {
