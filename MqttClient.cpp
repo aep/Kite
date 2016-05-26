@@ -336,7 +336,7 @@ void MqttClientPrivate::onCONNACK (Frame &frame)
 
 void MqttClientPrivate::onPUBACK  (Frame &frame)  {
     int id = frame.readInt();
-    std::cerr<< "ackd publish " << id << std::endl;
+    //std::cerr<< "ackd publish " << id << std::endl;
 }
 void MqttClientPrivate::onSUBACK  (Frame &frame)  {
     int id = frame.readInt();
