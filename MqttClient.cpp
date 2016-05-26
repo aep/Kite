@@ -300,7 +300,7 @@ void MqttClient::onConnected() {
 
 void MqttClient::publish(const std::string &topic, const std::string &message, int qos, bool retain)
 {
-    Frame frame(Frame::PUBLISH, qos);
+    Frame frame(Frame::PUBLISH, qos, retain);
     frame.writeString(topic);
     if (qos > 0) {
         if (++(p->nextMessageId) == 0) p->nextMessageId = 1;
