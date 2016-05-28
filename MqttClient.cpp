@@ -216,7 +216,7 @@ void MqttClient::onActivated(int)
         std::string data;
         if (p->expectedSize != 0) {
             if (p->buffer.size() < p->expectedSize)
-                break;
+                return;
 
             data = std::string(p->buffer.begin(), p->buffer.begin() + p->expectedSize);
             p->buffer.erase(p->buffer.begin(), p->buffer.begin() + p->expectedSize);
@@ -244,12 +244,6 @@ void MqttClient::onActivated(int)
             default:
                 std::cerr  << "unhandled message type " << frame.type << std::endl;
         }
-    }
-
-    //have more?
-    //TODO wont get activated again. this is not properly abstracted away in SecureSocket
-    if (r >= 200) {
-        onActivated(0);
     }
 }
 
