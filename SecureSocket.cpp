@@ -42,6 +42,12 @@ public:
             d_connect();
         } else if (state == Kite::SecureSocket::Connected) {
             p->onActivated(0);
+            if (BIO_pending(bio)) {
+                Timer::later(ev(), [this](){
+                    onActivated(0);
+                    return false;
+                }, 1, "BIO_pending after read");
+            }
         }
     }
     friend class Kite::SecureSocket;
