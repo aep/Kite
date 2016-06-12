@@ -12,6 +12,8 @@ namespace Kite {
 
         void popen(const std::string &cmd);
         void close();
+        void closeRead();
+        void closeWrite();
 
         virtual int read(char *buf, int len);
         virtual int write(const char *buf, int len);

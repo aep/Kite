@@ -4,3 +4,6 @@
 [submodule "3rdparty/base64"]
 	path = 3rdparty/base64
     url = https://github.com/tkislan/base64.git
+[submodule "tests/dessert"]
+	path = tests/dessert
+	url = https://github.com/r-lyeh/dessert.git

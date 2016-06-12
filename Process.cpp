@@ -62,6 +62,16 @@ void Process::close()
     d_pid = 0;
 }
 
+void Process::closeRead()
+{
+    ::close(d_pipeout[0]);
+}
+
+void Process::closeWrite()
+{
+    ::close(d_pipein[1]);
+}
+
 int Process::read(char *buf, int len)
 {
     if (d_pid == 0)
