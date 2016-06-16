@@ -165,6 +165,16 @@ void MqttClient::setClientId(const std::string &v)
     p->clientId = v;
 }
 
+void MqttClient::setUsername(const std::string &username)
+{
+    p->username = username;
+}
+
+void MqttClient::setPassword(const std::string &password)
+{
+    p->password = password;
+}
+
 void MqttClient::setKeepAlive(int v)
 {
     p->keepAlive = v;

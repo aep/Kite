@@ -59,9 +59,11 @@ int main(int argc, char **argv)
 
     client->setKeepAlive(40);
     client->setClientId("derp" + std::to_string((long)argv));
-    client->setCaFile("/etc/ssl/superscale.crt");
+    client->setUsername("hans");
+    client->setPassword("wurst");
 
-    client->connect("armada.superscale.io", 443, 5000, true);
+
+    client->connect("localhost", 1883, 5000, false);
     //client->connect("localhost", 1883, 5000, true);
 
     std::cerr << "lopzing" << std::endl;
