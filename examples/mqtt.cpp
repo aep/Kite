@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     std::shared_ptr<MyClient>        client(new MyClient(ev));
     std::shared_ptr<Stdio>           stdio(new Stdio(ev, client));
 
-    client->setKeepAlive(40);
+    client->setKeepAlive(2);
     client->setClientId("derp" + std::to_string((long)argv));
     client->setUsername("hans");
     client->setPassword("wurst");

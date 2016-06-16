@@ -95,6 +95,7 @@ public:
     bool cleanSess;
 
     int keepAlive;
+    bool lastPongReceived;
     std::vector<char> buffer;
     int expectedSize;
     uint8_t nextHeader;
@@ -126,9 +127,16 @@ public:
         if (!isConnected)
             return true;
 
+        if (!lastPongReceived) {
+            std::cerr << "ping timeout" << std::endl;
+            p->disconnect();
+        }
+
         Frame frame(Frame::PINGREQ, 0);
         frame.parcel(p);
         p->flush();
+        lastPongReceived = false;
+
 
         return true;
     }
@@ -143,6 +151,7 @@ MqttClient::MqttClient(std::weak_ptr<Kite::EventLoop> ev)
 {
     p->p = this;
     p->keepAlive = 3;
+    p->lastPongReceived = true;
     p->clientId  = "kitemqtt";
     p->expectedSize = 0;
     p->nextMessageId = 1;
@@ -179,6 +188,7 @@ void MqttClient::setKeepAlive(int v)
 {
     p->keepAlive = v;
     p->reset(p->keepAlive * 1000);
+    p->lastPongReceived = true;
 }
 
 void MqttClient::setWill(const std::string &topic, const std::string &message, int qos, bool retain)
@@ -204,6 +214,7 @@ void MqttClient::onActivated(int)
         //but we need an abstract concept
         //at least enum or something, not ints
         if (r == -1) {
+            std::cerr << "rebuffer" << std::endl;
             p->buffer.resize(osize);
             return;
         }
@@ -215,10 +226,18 @@ void MqttClient::onActivated(int)
     }
     p->buffer.resize(osize + r);
 
-    while (p->buffer.size() > 2) {
+    while (p->buffer.size() >= 2) {
         if (p->expectedSize == 0) {
             p->nextHeader = p->buffer[0];
             p->buffer.erase(p->buffer.begin());
+            if (p->buffer[0] != 0 && p->buffer.size() < 3) {
+                //FIXME
+                //we don't have the full payload size header,
+                //whatever we do will be undefined behaviour.
+                //lets just crash
+                throw std::runtime_error("payload header fragementation not handled");
+                return;
+            }
             p->expectedSize = p->readPayloadSize();
         }
 
@@ -235,7 +254,6 @@ void MqttClient::onActivated(int)
 
 
         Frame frame(p->nextHeader, data);
-        //std::cerr << "msg type" << frame.type << std::endl;
         switch (frame.type) {
             case Frame::CONNACK:
                 p->onCONNACK(frame);
@@ -250,6 +268,7 @@ void MqttClient::onActivated(int)
                 p->onPUBLISH(frame);
                 break;
             case Frame::PINGRESP:
+                p->lastPongReceived = true;
                 break;
             default:
                 std::cerr  << "unhandled message type " << frame.type << std::endl;
@@ -298,6 +317,7 @@ void MqttClient::onConnected() {
     flush();
     p->isConnected = true;
     p->reset(p->keepAlive * 1000);
+    p->lastPongReceived = true;
 }
 
 
