@@ -13,7 +13,7 @@ public:
     }
 
 protected:
-    virtual void onActivated(int) override
+    virtual void onActivated(int,int) override
     {
         Kite::InternetAddress src;
         char buf[1024];

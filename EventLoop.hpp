@@ -13,17 +13,28 @@ namespace Kite  {
     class EventLoop;
     class Evented {
     public:
+        enum EventTypes {
+            Read      = 0x1,
+            Write     = 0x2,
+            Exception = 0x4
+        };
         Evented(std::weak_ptr<EventLoop> ev);
         virtual ~Evented();
 
+        static void later(
+                const std::weak_ptr<Kite::EventLoop> &ev,
+                int fd, EventTypes types,
+                const std::function<bool()> &fn,
+                const char *name = "later");
     protected:
-        void evAdd(int);
+
+        void evAdd(int fd, int events = Read);
         void evRemove(int);
 
         inline std::shared_ptr<EventLoop> ev() const { return p_Ev.lock();}
     private:
         friend class EventLoop;
-        virtual void onActivated(int) = 0;
+        virtual void onActivated(int fd, int events) = 0;
         std::weak_ptr<EventLoop> p_Ev;
     };
 
@@ -36,7 +47,7 @@ namespace Kite  {
     private:
         friend class Timer;
         friend class Evented;
-        std::map <int, Evented*> p_evs;
+        std::map <int, std::pair<Evented*, int> > p_evs;
         std::unordered_set<Timer* > p_timers;
         bool p_running;
         int  p_exitCode;

@@ -39,7 +39,7 @@ private:
     std::weak_ptr<MyClient> mc;
     std::string lb;
 protected:
-    void onActivated(int) {
+    void onActivated(int,int) {
         char buf[1024];
         int r = read(buf, 1204);
         if (r < 1) {
@@ -61,9 +61,10 @@ int main(int argc, char **argv)
     client->setClientId("derp" + std::to_string((long)argv));
     client->setUsername("hans");
     client->setPassword("wurst");
+    client->setCaFile("/etc/ssl/cert.pem");
 
 
-    client->connect("localhost", 1883, 5000, false);
+    client->connect("armada.superscale.io", 443, 5000, true);
     //client->connect("localhost", 1883, 5000, true);
 
     std::cerr << "lopzing" << std::endl;

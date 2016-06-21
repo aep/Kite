@@ -21,7 +21,7 @@ namespace Kite {
         static std::string shell(const std::string &cmd, int timeout = 5000);
 
     protected:
-        virtual void onActivated(int e) override final;
+        virtual void onActivated(int fd, int e) override final;
         virtual void onReadActivated() {};
         virtual void onClosing() {}
 

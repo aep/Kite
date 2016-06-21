@@ -42,9 +42,9 @@ void Process::popen(const std::string &cmd)
 
 }
 
-void Process::onActivated(int e)
+void Process::onActivated(int fd, int e)
 {
-    if (e == d_forkfd){
+    if (fd == d_forkfd){
         close();
     }
     onReadActivated();

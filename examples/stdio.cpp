@@ -21,7 +21,7 @@ protected:
         write("tick\n", 5);
         return true;
     }
-    virtual void onActivated(int) override
+    virtual void onActivated(int,int) override
     {
         char buf[1024];
         int len = read(buf, 1024);

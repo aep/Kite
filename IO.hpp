@@ -8,7 +8,7 @@ namespace Kite {
         virtual int write(const char *buf, int len) = 0;
         virtual inline bool getc(char &c) {return (read(&c, 1) == 1);}
     protected:
-        virtual void onActivated (int) {}
+        virtual void onActivated  (int events) {}
     };
 };
 

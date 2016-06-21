@@ -15,7 +15,7 @@ using namespace Kite;
 //TODO: not thread safe
 static std::map<SSL  *, SecureSocket *> rebind_map;
 
-class Kite::SecureSocketPrivate : public Kite::Evented {
+class Kite::SecureSocketPrivate : public Kite::Evented, public Kite::Timer {
 public:
     SSL_CTX *ssl_ctx;
     BIO     *bio;
@@ -24,29 +24,44 @@ public:
     std::string errorMessage;
 
     bool useTls;
-    bool  hasTimeout;
-    Timer connectionTimout;
 
     SecureSocket *p;
     void d_connect();
 
     SecureSocketPrivate(std::weak_ptr<Kite::EventLoop> ev)
         : Kite::Evented(ev)
-        , connectionTimout(ev)
+        , Kite::Timer(ev)
     {
-        KITE_TIMER_DEBUG_NAME(&connectionTimout, "Kite::SecureSocketPrivate::connectionTimout");
+        KITE_TIMER_DEBUG_NAME(this, "Kite::SecureSocketPrivate::connectionTimout");
     }
-    virtual void onActivated (int)
-    {
+    virtual bool onExpired() {
         if (state == Kite::SecureSocket::Connecting) {
-            d_connect();
-        } else if (state == Kite::SecureSocket::Connected) {
-            p->onActivated(0);
-            if (BIO_pending(bio)) {
-                Timer::later(ev(), [this](){
-                    onActivated(0);
-                    return false;
-                }, 1, "BIO_pending after read");
+            errorMessage = "Connection timed out";
+            state = SecureSocket::TransportErrror;
+            p->disconnect();
+        }
+        return false;
+    }
+    virtual void onActivated (int fd, int events)
+    {
+        if (events & Kite::Evented::Write) {
+            if (state == Kite::SecureSocket::Connecting) {
+                std::cerr << "Kite::Evented::Write" << std::endl;
+            }
+            evRemove(fd);
+            evAdd(fd, Kite::Evented::Read);
+        }
+        if (events & Kite::Evented::Read) {
+            if (state == Kite::SecureSocket::Connecting) {
+                d_connect();
+            } else if (state == Kite::SecureSocket::Connected) {
+                p->onActivated(Kite::Evented::Read);
+                if (BIO_pending(bio)) {
+                    Timer::later(Evented::ev(), [this, fd](){
+                            onActivated(fd, Kite::Evented::Read);
+                            return false;
+                            }, 1, "BIO_pending after read");
+                }
             }
         }
     }
@@ -110,15 +125,12 @@ SecureSocket::SecureSocket(std::weak_ptr<Kite::EventLoop> ev)
         return;
     }
 
-
     SSL_CTX_set_info_callback(p->ssl_ctx, apps_ssl_info_callback);
-
 }
 
 SecureSocket::~SecureSocket()
 {
     disconnect();
-
 
     if (p->bio)
         BIO_free_all(p->bio);
@@ -188,10 +200,7 @@ void SecureSocket::disconnect()
 void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeout, bool tls)
 {
     p->useTls = tls;
-    if (timeout > 0) {
-        p->hasTimeout = true;
-        p->connectionTimout.reset(timeout);
-    }
+    p->reset(timeout);
     p->state   = Connecting;
     int r = 0;
 
@@ -240,14 +249,6 @@ void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeo
 }
 void SecureSocketPrivate::d_connect()
 {
-    if (hasTimeout) {
-        if (connectionTimout.expires() < 1) {
-            errorMessage = "Connection timed out";
-            state        = SecureSocket::TransportErrror;
-            p->disconnect();
-            return;
-        }
-    }
     int r  = BIO_do_connect(bio);
     if (r < 1) {
         if (BIO_should_retry(bio)) {
@@ -255,7 +256,7 @@ void SecureSocketPrivate::d_connect()
             // this seems how to do it properly, but i cant get it working:
             // https://github.com/jmckaskill/bio_poll/blob/master/poll.c
             // probably because BIO_get_fd is garbage before connect?
-            Timer::later(ev(), [this](){
+            Timer::later(Evented::ev(), [this](){
                     d_connect();
                     return false;
                     }, 100, "BIO_should_retry");
@@ -263,9 +264,9 @@ void SecureSocketPrivate::d_connect()
         }
         if (state != SecureSocket::SecureClientCertificateRequired) {
             const char *em = ERR_reason_error_string(ERR_get_error());
-            debugprintf( "BIO_new_ssl_connect failed: %u (0x%x)\n", r, r);
-            debugprintf( "Error: %s\n", em);
-            debugprintf( "%s\n", ERR_error_string(ERR_get_error(), NULL));
+            debugprintf("BIO_new_ssl_connect failed: %u (0x%x)\n", r, r);
+            debugprintf("Error: %s\n", em);
+            debugprintf("%s\n", ERR_error_string(ERR_get_error(), NULL));
             if (useTls) {
                 debugprintf("p_ssl state: %s\n",SSL_state_string_long(ssl));
             }
@@ -297,11 +298,14 @@ void SecureSocketPrivate::d_connect()
         p->disconnect();
         return;
     }
-    evAdd(fd);
 
-
-    state        = SecureSocket::Connected;
-    p->onConnected();
+    if (useTls) {
+        state = SecureSocket::Connected;
+        evAdd(fd, Kite::Evented::Read);
+        p->onConnected();
+    } else {
+        evAdd(fd, Kite::Evented::Read | Kite::Evented::Write);
+    }
 }
 
 int SecureSocket::write(const char *data, int len)
@@ -340,5 +344,5 @@ void SecureSocket::flush()
 
 const std::shared_ptr<EventLoop> SecureSocket::ev() const
 {
-    return p->ev();
+    return p->Evented::ev();
 }

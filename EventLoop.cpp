@@ -19,17 +19,17 @@ Evented::~Evented()
     auto ev = p_Ev.lock();
     auto it = ev->p_evs.begin();
     while (it != ev->p_evs.end()) {
-        if (it->second == this)
+        if (it->second.first == this)
             ev->p_evs.erase(it++);
         else
             it++;
     }
 }
 
-void Evented::evAdd(int fd)
+void Evented::evAdd(int fd, int events)
 {
     auto ev = p_Ev.lock();
-    ev->p_evs.insert(std::make_pair(fd, this));
+    ev->p_evs.insert(std::make_pair(fd, std::make_pair(this, events)));
 }
 
 void Evented::evRemove(int fd)
@@ -37,7 +37,7 @@ void Evented::evRemove(int fd)
     auto ev = p_Ev.lock();
     auto it = ev->p_evs.begin();
     while (it != ev->p_evs.end()) {
-        if (it->second == this && it->first == fd)
+        if (it->second.first == this && it->first == fd)
             ev->p_evs.erase(it++);
         else
             it++;
@@ -106,9 +106,15 @@ int EventLoop::exec()
         it = evs.begin();
         while (it != evs.end()) {
             if (fds[i].revents) {
-            //if (fds[i].revents & POLLIN) {
-                auto ev = it->second;
-                ev->onActivated(fds[i].fd);
+                int kiteevents = 0;
+                if (fds[i].revents & POLLIN) {
+                    kiteevents |= Kite::Evented::Read;
+                }
+                if (fds[i].revents & POLLOUT) {
+                    kiteevents |= Kite::Evented::Write;
+                }
+                auto ev = it->second.first;
+                ev->onActivated(fds[i].fd, kiteevents);
             }
             i++;
             it++;
