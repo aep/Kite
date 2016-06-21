@@ -99,16 +99,15 @@ public:
     std::vector<char> buffer;
     int expectedSize;
     uint8_t nextHeader;
-    int readPayloadSize()
+    int readPayloadSize(int *offset)
     {
         int8_t byte;
         int len = 0;
         int mul = 1;
         do {
-            //TODO we hope we got the whole header in one tcp package
-            //otherwise we crash
-            byte = buffer[0];
-            buffer.erase(buffer.begin());
+            if (*offset >= buffer.size())
+                return -1;
+            byte = buffer[(*offset)++];
             len += (byte & 127) * mul;
             mul *= 128  ;
         } while ((byte & 128) != 0);
@@ -229,16 +228,14 @@ void MqttClient::onActivated(int)
     while (p->buffer.size() >= 2) {
         if (p->expectedSize == 0) {
             p->nextHeader = p->buffer[0];
-            p->buffer.erase(p->buffer.begin());
-            if (p->buffer[0] != 0 && p->buffer.size() < 3) {
-                //FIXME
-                //we don't have the full payload size header,
-                //whatever we do will be undefined behaviour.
-                //lets just crash
-                throw std::runtime_error("payload header fragementation not handled");
+            int offset = 1;
+            p->expectedSize = p->readPayloadSize(&offset);
+            if (p->expectedSize == -1) {
+                p->expectedSize = 0;
+                std::cerr << "warning: header fragemented" << std::endl;
                 return;
             }
-            p->expectedSize = p->readPayloadSize();
+            p->buffer.erase(p->buffer.begin(), p->buffer.begin() + offset);
         }
 
 
