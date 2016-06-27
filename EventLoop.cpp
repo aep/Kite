@@ -90,7 +90,13 @@ int EventLoop::exec()
         auto it = p_evs.begin();
         while (it != p_evs.end()) {
             fds[i].fd = it->first;
-            fds[i].events = POLLIN;
+            fds[i].events = 0;
+            if (it->second.second & Kite::Evented::Read) {
+                fds[i].events |= POLLIN;
+            }
+            if (it->second.second & Kite::Evented::Write) {
+                fds[i].events |= POLLOUT;
+            }
             i++;
             it++;
         }

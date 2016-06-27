@@ -47,6 +47,8 @@ public:
         if (events & Kite::Evented::Write) {
             if (state == Kite::SecureSocket::Connecting) {
                 std::cerr << "Kite::Evented::Write" << std::endl;
+                state = SecureSocket::Connected;
+                p->onConnected();
             }
             evRemove(fd);
             evAdd(fd, Kite::Evented::Read);
@@ -249,9 +251,11 @@ void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeo
 }
 void SecureSocketPrivate::d_connect()
 {
+    debugprintf("d_connect\n");
     int r  = BIO_do_connect(bio);
     if (r < 1) {
         if (BIO_should_retry(bio)) {
+            debugprintf("retry\n");
             // rety imidiately.
             // this seems how to do it properly, but i cant get it working:
             // https://github.com/jmckaskill/bio_poll/blob/master/poll.c
@@ -304,6 +308,7 @@ void SecureSocketPrivate::d_connect()
         evAdd(fd, Kite::Evented::Read);
         p->onConnected();
     } else {
+        debugprintf("waiting for write ready\n");
         evAdd(fd, Kite::Evented::Read | Kite::Evented::Write);
     }
 }

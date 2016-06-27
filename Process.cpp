@@ -126,7 +126,7 @@ std::string Process::shell(const std::string &cmd, int timeout)
     p->popen(cmd);
 
     if (ev->exec() != 0)
-        throw std::runtime_error("Process::shell timeout");
+        throw std::runtime_error("Process::shell timeout: " + cmd);
 
     return p->buffer;
 
