@@ -9,6 +9,7 @@ EXES=\
 	 util.exe \
 	 process.exe \
 	 timer.exe \
+	 unixbus.exe \
 
 
 ALL: $(EXES) stdio.exe

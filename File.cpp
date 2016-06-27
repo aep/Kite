@@ -9,6 +9,11 @@ File::File(std::weak_ptr<EventLoop> ev)
 {
 }
 
+File::~File()
+{
+    close();
+}
+
 void File::setFile(int fd)
 {
     d_fd = fd;
@@ -25,3 +30,9 @@ int File::write(const char *buf, int len)
     return ::write(d_fd, buf, len);
 }
 
+void File::close()
+{
+    if (d_fd) {
+        ::close(d_fd);
+    }
+}

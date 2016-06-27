@@ -1,7 +1,7 @@
 THIS := $(dir $(lastword $(MAKEFILE_LIST)))
 
-CXXFLAGS +=-std=c++11 -I$(THIS)
-LDFLAGS  += -lpthread -lssl -lcrypto
+CXXFLAGS += -flto -std=c++11 -I$(THIS)
+LDFLAGS  += -flto -lpthread -lssl -lcrypto
 
 SOURCES += \
 	$(THIS)EventLoop.cpp \
@@ -13,6 +13,7 @@ SOURCES += \
 	$(THIS)HttpClient.cpp \
 	$(THIS)File.cpp \
 	$(THIS)Process.cpp \
+	$(THIS)Unixbus.cpp \
 	$(THIS)forkfd.cpp \
 	$(THIS)3rdparty/uri-parser/UriCodec.cpp \
 

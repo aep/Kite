@@ -7,3 +7,6 @@
 [submodule "tests/dessert"]
 	path = tests/dessert
 	url = https://github.com/r-lyeh/dessert.git
+[submodule "afunix_polyfill"]
+	path = afunix_polyfill
+	url = https://github.com/aep/afunix_polyfill.git

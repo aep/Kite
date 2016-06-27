@@ -9,13 +9,14 @@ namespace Kite {
     class File : public Kite::Evented, public Kite::IO {
     public:
         File(std::weak_ptr<EventLoop> ev);
+        virtual ~File();
 
         virtual int read(char *buf, int len);
         virtual int write(const char *buf, int len);
+
+        virtual void close();
     protected:
         void setFile(int fd);
-
-    private:
         int d_fd;
 
     };
