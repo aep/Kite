@@ -1,5 +1,5 @@
-#ifndef KITE_FILE_HPP_SKMD
-#define KITE_FILE_HPP_SKMD
+#ifndef KITE_PROCESS_HPP_SKMD
+#define KITE_PROCESS_HPP_SKMD
 
 #include "IO.hpp"
 #include "EventLoop.hpp"
