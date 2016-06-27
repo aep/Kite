@@ -52,6 +52,10 @@ public:
 
         d_host = parsed.host;
         d_path = parsed.path;
+        trim(d_path);
+        if (d_path.empty()) {
+            d_path = "/";
+        }
 
         if (parsed.user.empty()) {
             d_auth = std::string();
@@ -152,7 +156,7 @@ void HttpClient::post(const std::string &url, const std::string &body)
 }
 
 
-void HttpClient::onActivated(int)
+void HttpClient::onActivated(int events)
 {
     if (p->state < HttpClient::HeaderCompleted) {
         if (p->p_buf.length() >= 4048) {

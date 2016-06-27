@@ -46,7 +46,6 @@ public:
     {
         if (events & Kite::Evented::Write) {
             if (state == Kite::SecureSocket::Connecting) {
-                std::cerr << "Kite::Evented::Write" << std::endl;
                 state = SecureSocket::Connected;
                 p->onConnected();
             }
