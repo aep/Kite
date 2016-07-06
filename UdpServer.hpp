@@ -25,6 +25,7 @@ namespace Kite {
         uint16_t port() const;
 
         bool operator==(const InternetAddress& other) const;
+        bool operator<(const Kite::InternetAddress &other) const;
     private:
         struct space {char space[60];};
         std::shared_ptr <space> p;

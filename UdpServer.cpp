@@ -70,6 +70,20 @@ bool InternetAddress::operator==(const InternetAddress& other) const
     return true;
 }
 
+bool InternetAddress::operator<(const InternetAddress& other) const
+{
+    sockaddr_in *p_a = (sockaddr_in*)p.get();
+    sockaddr_in *p_b = (sockaddr_in*)other.p.get();
+    if (p_a->sin_addr.s_addr < p_b->sin_addr.s_addr)
+        return true;
+    if (p_a->sin_family < p_b->sin_family)
+        return true;
+    if (p_a->sin_port < p_b->sin_port)
+        return true;
+
+    return false;
+}
+
 
 
 UdpServer::UdpServer(std::weak_ptr<Kite::EventLoop> ev)
