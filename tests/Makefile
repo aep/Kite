@@ -3,6 +3,7 @@ include ../Makefile.in
 OBJECTS := $(patsubst %.cpp,%.o,$(SOURCES))
 
 CXXFLAGS += -g
+LDFLAGS += -g
 
 EXES=\
 	 http.exe \
@@ -10,6 +11,7 @@ EXES=\
 	 process.exe \
 	 timer.exe \
 	 unixbus.exe \
+	 eventloop.exe \
 
 
 ALL: $(EXES) stdio.exe

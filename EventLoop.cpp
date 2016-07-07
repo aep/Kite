@@ -87,8 +87,12 @@ int EventLoop::exec()
         fds[0].events = POLLIN;
 
         int i = 1;
-        auto it = p_evs.begin();
-        while (it != p_evs.end()) {
+
+        //copy list of ev fds because it might be modified inside activated()
+        auto evs = p_evs;
+        auto it  = evs.begin();
+
+        while (it != evs.end()) {
             fds[i].fd = it->first;
             fds[i].events = 0;
             if (it->second.second & Kite::Evented::Read) {
@@ -105,8 +109,6 @@ int EventLoop::exec()
         int ret = poll(fds, pollnum, timeout);
 
 
-        //copy list of fds because it might be modified inside activated()
-        auto evs = p_evs;
 
         i = 1;
         it = evs.begin();
@@ -119,8 +121,13 @@ int EventLoop::exec()
                 if (fds[i].revents & POLLOUT) {
                     kiteevents |= Kite::Evented::Write;
                 }
-                auto ev = it->second.first;
-                ev->onActivated(fds[i].fd, kiteevents);
+
+                //check the actual list rather then the copy for the Evented pointer
+                //because the Evented might be deleted already
+                auto evented = p_evs[it->first].first;
+                if (evented) {
+                    evented->onActivated(fds[i].fd, kiteevents);
+                }
             }
             i++;
             it++;
