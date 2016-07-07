@@ -118,7 +118,7 @@ std::string Process::shell(const std::string &cmd, int timeout)
         Kite::Timer::later(ev, [ev] () {
                 ev->exit(9);
                 return false;
-                },timeout, "process::shell:timeout");
+                }, timeout, ev.get(), "process::shell:timeout");
     }
 
 

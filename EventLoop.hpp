@@ -7,6 +7,8 @@
 #include <queue>
 #include <unordered_set>
 
+#include "Scope.hpp"
+
 namespace Kite  {
 
     class Timer;
@@ -25,6 +27,7 @@ namespace Kite  {
                 const std::weak_ptr<Kite::EventLoop> &ev,
                 int fd, EventTypes types,
                 const std::function<bool()> &fn,
+                Scope *scope,
                 const char *name = "later");
     protected:
 
@@ -38,7 +41,7 @@ namespace Kite  {
         std::weak_ptr<EventLoop> p_Ev;
     };
 
-    class EventLoop : public std::enable_shared_from_this<EventLoop> {
+    class EventLoop : public std::enable_shared_from_this<EventLoop>, public Scope {
     public:
         EventLoop();
         ~EventLoop();

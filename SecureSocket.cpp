@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 
+#include "Scope.hpp"
 #include "Timer.hpp"
 
 using namespace Kite;
@@ -15,7 +16,7 @@ using namespace Kite;
 //TODO: not thread safe
 static std::map<SSL  *, SecureSocket *> rebind_map;
 
-class Kite::SecureSocketPrivate : public Kite::Evented, public Kite::Timer {
+class Kite::SecureSocketPrivate : public Kite::Evented, public Kite::Timer, public Kite::Scope {
 public:
     SSL_CTX *ssl_ctx;
     BIO     *bio;
@@ -51,6 +52,7 @@ public:
             }
             evRemove(fd);
             evAdd(fd, Kite::Evented::Read);
+            return;
         }
         if (events & Kite::Evented::Read) {
             if (state == Kite::SecureSocket::Connecting) {
@@ -61,7 +63,7 @@ public:
                     Timer::later(Evented::ev(), [this, fd](){
                             onActivated(fd, Kite::Evented::Read);
                             return false;
-                            }, 1, "BIO_pending after read");
+                            }, 1, this, "BIO_pending after read");
                 }
             }
         }
@@ -102,9 +104,11 @@ void apps_ssl_info_callback(const SSL *s, int where, int ret)
     }
 }
 
+
 SecureSocket::SecureSocket(std::weak_ptr<Kite::EventLoop> ev)
     : p(new SecureSocketPrivate(ev))
 {
+
     static bool sslIsInit = false;
     if (!sslIsInit) {
         SSL_load_error_strings();
@@ -129,8 +133,11 @@ SecureSocket::SecureSocket(std::weak_ptr<Kite::EventLoop> ev)
     SSL_CTX_set_info_callback(p->ssl_ctx, apps_ssl_info_callback);
 }
 
+
+
 SecureSocket::~SecureSocket()
 {
+    debugprintf("~SecureSocket() destructing\n");
     disconnect();
 
     if (p->bio)
@@ -140,6 +147,7 @@ SecureSocket::~SecureSocket()
         SSL_CTX_free(p->ssl_ctx);
 
     delete p;
+    debugprintf("~SecureSocket() dead\n");
 }
 
 bool SecureSocket::setCaDir (const std::string &path)
@@ -179,10 +187,17 @@ bool SecureSocket::setClientKeyFile(const std::string &path)
 
 void SecureSocket::disconnect()
 {
+    debugprintf("SecureSocket::disconnect()\n");
+    onDisconnected(p->state);
+    if (p->state == Connected || p->state == Connecting) {
+        p->state = Disconnected;
+    }
+
     int fd = 0;
     BIO_get_fd(p->bio, &fd);
-    if (fd != 0)
+    if (fd != 0) {
         p->evRemove(fd);
+    }
 
     if (p->ssl) {
         auto e = rebind_map.find(p->ssl);
@@ -193,9 +208,6 @@ void SecureSocket::disconnect()
     if (p->bio)
         BIO_ssl_shutdown(p->bio);
 
-    if (p->state == Connected || p->state == Connecting)
-        p->state = Disconnected;
-    onDisconnected(p->state);
 }
 
 void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeout, bool tls)
@@ -262,7 +274,7 @@ void SecureSocketPrivate::d_connect()
             Timer::later(Evented::ev(), [this](){
                     d_connect();
                     return false;
-                    }, 100, "BIO_should_retry");
+                    }, 100, this, "BIO_should_retry");
             return;
         }
         if (state != SecureSocket::SecureClientCertificateRequired) {

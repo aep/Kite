@@ -18,10 +18,10 @@ Timer::Timer(const std::weak_ptr<EventLoop> &ev, uint64_t exp)
     ,p_expires(0)
     ,p_period_intent(0)
 {
-    reset(exp);
-
     k__debugName = "";
+    reset(exp);
 }
+
 Timer::~Timer()
 {
     reset(0);
@@ -110,19 +110,30 @@ void Timer::doExpire()
     }
 }
 
-class Kite::Once : public Timer
+class Kite::Once : public Timer, public DeathNotificationReceiver
 {
 public:
-    Once(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn)
+    Once(const std::weak_ptr<Kite::EventLoop> &ev,
+            const std::function<bool()> &fn,
+            Scope *cs
+            )
         : Timer(ev)
+        , DeathNotificationReceiver(cs)
         , fn(fn)
     {
     }
+
 private:
     std::function<bool()> fn;
     //must be last on the callstack inside EventLoop because of delete this
     virtual void doExpire() override
     {
+        if (isDead()) {
+            std::cerr << "Kite::Later on dead scope " << k__debugName << std::endl;
+            reset(0);
+            delete this;
+            return;
+        }
         if (fn()) {
             reset(p_period_intent);
         } else {
@@ -133,9 +144,9 @@ private:
 };
 
 
-void Timer::later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn, uint64_t ms, const char *name)
+void Timer::later(const std::weak_ptr<Kite::EventLoop> &ev, const std::function<bool()> &fn, uint64_t ms, Scope *cs, const char *name)
 {
-    Once *o = new Once(ev, fn);
+    Once *o = new Once(ev, fn, cs);
     o->k__debugName = name;
     o->reset(ms);
 

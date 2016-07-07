@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <memory>
+#include "Scope.hpp"
 
 
 /** Timer
@@ -26,6 +27,7 @@ namespace Kite {
         static void later(const std::weak_ptr<Kite::EventLoop> &ev,
                 const std::function<bool()> &fn,
                 uint64_t ms = 1,
+                Scope *scope = 0,
                 const char *name = "later");
 
         Timer (const std::weak_ptr<Kite::EventLoop> &ev, uint64_t expire = 0);
