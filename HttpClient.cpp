@@ -68,6 +68,9 @@ public:
             d_auth = "Basic " + d_auth;
         }
 
+        if (!parsed.search.empty()) {
+            d_path += "?" + parsed.search;
+        }
     }
 
     void onLine(const std::string &line)
