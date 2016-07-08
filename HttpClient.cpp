@@ -18,6 +18,7 @@ public:
     {
         state = 0;
         responseCode = 999;
+        maxBodyBuffer = 2048;
     }
 
     void setUrl(const std::string &url, const std::string &verb)
@@ -117,6 +118,7 @@ public:
     friend class HttpClient;
 
     std::string p_buf;
+    int maxBodyBuffer;
 
 
     HttpClient *p;
@@ -156,10 +158,15 @@ void HttpClient::post(const std::string &url, const std::string &body)
 }
 
 
+void HttpClient::setBodyBufferSize(int size)
+{
+    p->maxBodyBuffer = size;
+}
+
 void HttpClient::onActivated(int events)
 {
     if (p->state < HttpClient::HeaderCompleted) {
-        if (p->p_buf.length() >= 4048) {
+        if (p->p_buf.length() >= p->maxBodyBuffer) {
             std::cerr << "warning: internal HttpClient buffer overflow" << std::endl;
             disconnect();
             return;
@@ -192,7 +199,7 @@ void HttpClient::onReadActivated()
         disconnect();
         return;
     }
-    if (p->p_buf.length() + len >= 4048) {
+    if (p->p_buf.length() + len >= p->maxBodyBuffer) {
         throw std::runtime_error("overflow");
     }
     p->p_buf += std::string(buf, len);

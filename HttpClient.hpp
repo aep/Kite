@@ -26,9 +26,11 @@ public:
     void get(const std::string &url);
     void post(const std::string &url, const std::string &body);
 
+    void setBodyBufferSize(int size);
+
 protected:
     virtual void onHeadersReady(const std::map<std::string,std::string> &responseHeaders) {}
-    virtual void onFinished(Status status, int responseCode, const std::string &body) = 0;
+    virtual void onFinished(Status status, int responseCode, const std::string &body){};
     virtual void onReadActivated();
 
     void onActivated (int) override final;
