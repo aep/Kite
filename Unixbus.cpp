@@ -68,7 +68,6 @@ void Unixbus::onBusMessage(const std::string &data, int address)
 
 void Unixbus::onActivated(int fd, int e)
 {
-    fprintf(stderr, "-------------------Unixbus::activated\n");
     char buf[AFUNIX_MAX_PACKAGE_SIZE];
     int address;
     int r = afunix_recvfrom(d_fd, &buf, AFUNIX_MAX_PACKAGE_SIZE, MSG_DONTWAIT, &address);
