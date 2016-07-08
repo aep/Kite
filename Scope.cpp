@@ -45,3 +45,12 @@ void Scope::removeDeathNotificationReceiver(DeathNotificationReceiver *c)
                 c), dd_notifications.end());
 
 }
+
+namespace Kite {
+template <> ScopePtr<Scope>::ScopePtr(Scope* r)
+    : DeathNotificationReceiver(r)
+      , d__r(r)
+{
+}
+}
+

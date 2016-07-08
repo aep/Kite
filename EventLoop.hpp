@@ -47,11 +47,14 @@ namespace Kite  {
         ~EventLoop();
         int exec();
         void exit(int exitCode = 0);
+
+        void deleteLater(Scope *);
     private:
         friend class Timer;
         friend class Evented;
         std::map <int, std::pair<Evented*, int> > p_evs;
         std::unordered_set<Timer* > p_timers;
+        std::vector<ScopePtr<Scope> > p_deleteme;
         bool p_running;
         int  p_exitCode;
         int  p_intp[2];

@@ -59,6 +59,11 @@ EventLoop::~EventLoop()
     close (p_intp[1]);
 }
 
+void EventLoop::deleteLater(Scope *s)
+{
+    p_deleteme.push_back(ScopePtr<Scope>(s));
+}
+
 int EventLoop::exec()
 {
     p_running = true;
@@ -139,6 +144,14 @@ re_enter:
             }
             i++;
             it++;
+        }
+
+        auto deleteme = p_deleteme;
+        p_deleteme.clear();
+        for (auto d : deleteme) {
+            if (!d.isDead()) {
+                delete *d;
+            }
         }
 
     }

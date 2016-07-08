@@ -4,10 +4,11 @@
 #include <string>
 #include "EventLoop.hpp"
 #include "IO.hpp"
+#include "Scope.hpp"
 
 namespace Kite {
     class SecureSocketPrivate;
-    class SecureSocket : public Kite::IO
+    class SecureSocket : public Kite::IO, public Kite::Scope
     {
     public:
         enum SocketState {

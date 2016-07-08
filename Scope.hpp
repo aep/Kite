@@ -3,6 +3,12 @@
 
 #include <vector>
 #include <algorithm>
+#include <cassert>
+
+/*
+ * TODO: revalidate 2017 if C++ finally fixed this
+ * hint: weak_from_this won't do it, because it'll still just throw if there is no shared_ptr holding it
+ */
 
 namespace Kite  {
     class Scope;
@@ -10,9 +16,9 @@ namespace Kite  {
     public:
         DeathNotificationReceiver(Scope *c);
         ~DeathNotificationReceiver();
+        bool isDead() const;
     protected:
         virtual void onDeathNotify(const void *) {}
-        bool isDead() const;
     private:
         friend class Scope;
         bool dd_scope_captured;
@@ -40,14 +46,6 @@ namespace Kite  {
         R *d__r;
     };
 
-
-    template <class R>
-        ScopePtr<R>::ScopePtr(R* r)
-        : DeathNotificationReceiver(r)
-        , d__r(r)
-    {
-    }
-
     template <class R>
         R* ScopePtr<R>::operator ->()
         {
@@ -61,8 +59,6 @@ namespace Kite  {
             assert(!isDead());
             return d__r;
         }
-
-
 }
 
 #endif
