@@ -94,8 +94,9 @@ public:
 
                 Kite::trim(key);
                 Kite::trim(value);
+                std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 
-                if (key == "Content-Length") {
+                if (key == "content-length") {
                     d_content_length = std::stoi(value);
                 }
 
