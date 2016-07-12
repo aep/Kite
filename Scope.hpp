@@ -37,6 +37,7 @@ namespace Kite  {
     };
 
 
+
     template <class R>
     class ScopePtr : public DeathNotificationReceiver {
     public:
@@ -46,6 +47,13 @@ namespace Kite  {
     private:
         R *d__r;
     };
+
+    template <class R>
+        ScopePtr<R>::ScopePtr(R* r)
+        : DeathNotificationReceiver(r)
+        , d__r(r)
+    {
+    }
 
     template <class R>
         R* ScopePtr<R>::operator ->()
