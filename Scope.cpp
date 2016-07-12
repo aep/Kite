@@ -17,6 +17,16 @@ DeathNotificationReceiver::DeathNotificationReceiver(Scope *c)
     }
 }
 
+DeathNotificationReceiver::DeathNotificationReceiver(const DeathNotificationReceiver& other)
+{
+    dd_scope_captured = other.dd_scope_captured;
+    dd_cscope = other.dd_cscope;
+    if (dd_cscope) {
+        dd_cscope->addDeathNotificationReceiver(this);
+    }
+
+}
+
 DeathNotificationReceiver::~DeathNotificationReceiver()
 {
     if (dd_cscope) {
@@ -26,8 +36,8 @@ DeathNotificationReceiver::~DeathNotificationReceiver()
 
 void DeathNotificationReceiver::doDeathNotify(const void *t)
 {
-    onDeathNotify(t);
     dd_cscope = nullptr;
+    onDeathNotify(t);
 }
 
 Scope::~Scope()

@@ -15,6 +15,7 @@ namespace Kite  {
     class DeathNotificationReceiver {
     public:
         DeathNotificationReceiver(Scope *c);
+        DeathNotificationReceiver(const DeathNotificationReceiver& a);
         ~DeathNotificationReceiver();
         bool isDead() const;
     protected:
