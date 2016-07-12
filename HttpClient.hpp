@@ -28,6 +28,7 @@ public:
     void post(const std::string &url, size_t io_len);
     void setBodyBufferSize(int size);
 
+    int writeBody(const char *data, int len);
 protected:
     virtual void onHeadersReady(const std::map<std::string,std::string> &responseHeaders) {}
     virtual void onFinished(Status status, int responseCode, const std::string &body){};

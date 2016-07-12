@@ -226,6 +226,7 @@ void HttpClient::onDisconnected(SocketState state)
 }
 
 void HttpClient::onConnected() {
+
     p->state =  Kite::HttpClient::Connected;
 
     std::stringstream ss;
@@ -251,10 +252,25 @@ void HttpClient::onConnected() {
     ss << "Connection: close\r\n";
     ss << "\r\n";
 
+    write(ss.str().c_str(), ss.str().length());
     if (p->d_post_io_length) {
-    } else {
-        write(ss.str().c_str(), ss.str().length());
         write(p->d_post_body.c_str(), p->d_post_body.length());
+    } else {
+        write(p->d_post_body.c_str(), p->d_post_body.length());
+    }
+}
+
+int HttpClient::writeBody(const char *data, int len)
+{
+    if (p->state != Kite::HttpClient::Connected) {
+        if (p->d_post_body.length() + len >= p->maxBodyBuffer) {
+            std::cerr << "HttpClient::writeBody would overflow" << std::endl;
+            return 0;
+        }
+        p->d_post_body += (std::string(data, len));
+        return len;
+    } else {
+        return SecureSocket::write(data, len);
     }
 }
 
