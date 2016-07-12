@@ -25,7 +25,7 @@ public:
     void setHeaders(std::map<std::string,std::string> headers);
     void get(const std::string &url);
     void post(const std::string &url, const std::string &body);
-
+    void post(const std::string &url, size_t io_len);
     void setBodyBufferSize(int size);
 
 protected:

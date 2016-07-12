@@ -19,6 +19,7 @@ public:
         state = 0;
         responseCode = 999;
         maxBodyBuffer = 2048;
+        d_post_io_length = 0;
     }
 
     void setUrl(const std::string &url, const std::string &verb)
@@ -117,6 +118,7 @@ public:
     int         d_port;
     std::string d_path;
     std::string d_post_body;
+    size_t d_post_io_length;
     std::string d_auth;
     friend class HttpClient;
 
@@ -156,6 +158,15 @@ void HttpClient::post(const std::string &url, const std::string &body)
     p->setUrl(url, "POST");
     p->status = Kite::HttpClient::Connecting;
     p->d_post_body = body;
+
+    connect(p->d_host, p->d_port, 5000, p->d_is_https);
+}
+
+void HttpClient::post(const std::string &url, size_t io_len)
+{
+    p->setUrl(url, "POST");
+    p->status = Kite::HttpClient::Connecting;
+    p->d_post_io_length = io_len;
 
     connect(p->d_host, p->d_port, 5000, p->d_is_https);
 }
@@ -226,7 +237,11 @@ void HttpClient::onConnected() {
     }
 
     if (p->d_verb == "POST") {
-        ss << "Content-Length: " << p->d_post_body.length() << "\r\n";
+        if (p->d_post_io_length) {
+            ss << "Content-Length: " << p->d_post_io_length << "\r\n";
+        } else {
+            ss << "Content-Length: " << p->d_post_body.length() << "\r\n";
+        }
     }
     if (!p->d_auth.empty()) {
         ss << "Authorization: " << p->d_auth << "\r\n";
@@ -234,11 +249,13 @@ void HttpClient::onConnected() {
 
     ss << "Connection: close\r\n";
     ss << "\r\n";
-    ss << p->d_post_body;
 
-    write(ss.str().c_str(), ss.str().length());
+    if (p->d_post_io_length) {
+    } else {
+        write(ss.str().c_str(), ss.str().length());
+        write(p->d_post_body.c_str(), p->d_post_body.length());
+    }
 }
-
 
 void HttpClient::setHeaders(std::map<std::string,std::string> requestHeaders)
 {
