@@ -16,6 +16,7 @@ public:
     {
         d_content_length = 0;
         d_progress = 0;
+        setCaFile("/etc/ssl/cert.pem");
     }
 
     void get(const std::string &url)
@@ -42,10 +43,7 @@ protected:
     {
         char buf[4048];
         int len = read(buf, 4048);
-        if (len < 1) {
-            disconnect();
-            return;
-        }
+        if (len < 1) return;
 
         d_progress += len;
 

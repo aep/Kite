@@ -35,9 +35,6 @@ void HtmlStreamClient::onReadActivated()
     char buf[1024];
     int len = read(buf, 1024);
     htmlstream_t *ht = (htmlstream_t*)p;
-    if (len < 1) {
-        disconnect();
-        return;
-    }
+    if (len < 1) return;
     htmlstream_feed(ht, buf, len);
 }

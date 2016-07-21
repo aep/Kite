@@ -341,11 +341,12 @@ int SecureSocket::read (char *data, int len)
     if (p->state != Connected)
         return 0;
     int e = BIO_read(p->bio, data, len);
-    if (e > -1)
+    if (e > 0)
         return e;
     if (BIO_should_retry(p->bio))
         return -1;
-    return -2;
+    disconnect();
+    return 0;
 }
 
 const std::string &SecureSocket::errorMessage() const

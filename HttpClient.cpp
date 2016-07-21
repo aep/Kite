@@ -188,10 +188,7 @@ void HttpClient::onActivated(int events)
         }
         char c;
         int len = read(&c, 1);
-        if (len != 1) {
-            disconnect();
-            return;
-        }
+        if (len != 1) return;
 
         p->p_buf += c;
         if (c == '\n') {
