@@ -49,14 +49,15 @@ void Unixbus::close()
 {
     if (d_fd == 0)
         return;
-    onBusClosed();
     afunix_close(d_fd);
     setFile(0);
+    onBusClosed();
 }
 
-void Unixbus::sendBusMessage(const std::string &data, int address)
+bool Unixbus::sendBusMessage(const std::string &data, int address)
 {
-    afunix_sendto(d_fd, (void*)data.data(), data.length(), 0, address);
+    return (afunix_sendto(d_fd, (void*)data.data(), data.length(), 0, address)
+            == data.length());
 }
 
 void Unixbus::onBusClosed()

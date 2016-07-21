@@ -26,6 +26,8 @@ desserts("loopback") {
         }
         virtual void onBusClosed() {
             closed++;
+            bool ok = sendBusMessage("yo!");
+            dessert(!ok);
         }
     };
 
@@ -36,9 +38,11 @@ desserts("loopback") {
         TestClient(std::weak_ptr<Kite::EventLoop> ev)
             : Kite::Unixbus(ev)
         {
-            bool ok = connect("session:kite:test");
+            bool ok;
+            ok = connect("session:kite:test");
             dessert(ok);
-            sendBusMessage("yo!");
+            ok = sendBusMessage("yo!");
+            dessert(ok);
         }
         virtual void onBusClosed() {
             closed++;

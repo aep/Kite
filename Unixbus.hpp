@@ -17,7 +17,7 @@ namespace Kite {
         bool connect (const std::string &path);
         virtual void close() override;
 
-        virtual void sendBusMessage(const std::string &data, int address = 0);
+        virtual bool sendBusMessage(const std::string &data, int address = 0);
     protected:
         virtual void onBusClosed();
         virtual void onBusMessage(const std::string &data, int address);
