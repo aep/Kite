@@ -9,6 +9,7 @@
 
 desserts("loopback") {
 
+    static int closed = 0;
     class TestServer: public Kite::Unixbus
     {
     public:
@@ -21,6 +22,26 @@ desserts("loopback") {
         virtual void onBusMessage(const std::string &msg, int address)
         {
             dessert(msg == "yo!");
+            close();
+        }
+        virtual void onBusClosed() {
+            closed++;
+        }
+    };
+
+
+    class TestClient : public Kite::Unixbus
+    {
+    public:
+        TestClient(std::weak_ptr<Kite::EventLoop> ev)
+            : Kite::Unixbus(ev)
+        {
+            bool ok = connect("session:kite:test");
+            dessert(ok);
+            sendBusMessage("yo!");
+        }
+        virtual void onBusClosed() {
+            closed++;
             ev()->exit(0);
         }
     };
@@ -31,8 +52,10 @@ desserts("loopback") {
     dessert(1);
     bool ok = Kite::Unixbus::invoke("session:kite:test", "yo!");
     dessert(ok);
+    std::shared_ptr<TestClient>         ll(new TestClient(ev));
     int r = ev->exec();
     dessert(r == 0);
+    dessert(closed == 2);
 }
 
 

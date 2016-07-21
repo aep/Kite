@@ -19,7 +19,7 @@ namespace Kite {
 
         virtual void sendBusMessage(const std::string &data, int address = 0);
     protected:
-        virtual void onClosed();
+        virtual void onBusClosed();
         virtual void onBusMessage(const std::string &data, int address);
         virtual void onActivated(int fd, int e) override final;
     };

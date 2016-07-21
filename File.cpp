@@ -6,6 +6,7 @@ using namespace Kite;
 
 File::File(std::weak_ptr<EventLoop> ev)
     : Evented(ev)
+    , d_fd(0)
 {
 }
 
@@ -16,13 +17,23 @@ File::~File()
 
 void File::setFile(int fd)
 {
+    if (d_fd) {
+        evRemove(d_fd);
+    }
     d_fd = fd;
-    evAdd(d_fd);
+    if (d_fd) {
+        evAdd(d_fd);
+    }
 }
 
 int File::read(char *buf, int len)
 {
-    return ::read(d_fd, buf, len);
+    int r = ::read(d_fd, buf, len);
+    if (r < 0) {
+        if (errno != EAGAIN)
+            close();
+        return 0;
+    }
 }
 
 int File::write(const char *buf, int len)
@@ -34,5 +45,7 @@ void File::close()
 {
     if (d_fd) {
         ::close(d_fd);
+        evRemove(d_fd);
+        d_fd = 0;
     }
 }

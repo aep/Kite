@@ -1,5 +1,6 @@
 #include "Unixbus.hpp"
 #include "3rdparty/afunix_polyfill/afunix_polyfill.h"
+#include <iostream>
 
 using namespace Kite;
 
@@ -48,9 +49,9 @@ void Unixbus::close()
 {
     if (d_fd == 0)
         return;
-    onClosed();
+    onBusClosed();
     afunix_close(d_fd);
-    d_fd = 0;
+    setFile(0);
 }
 
 void Unixbus::sendBusMessage(const std::string &data, int address)
@@ -58,7 +59,7 @@ void Unixbus::sendBusMessage(const std::string &data, int address)
     afunix_sendto(d_fd, (void*)data.data(), data.length(), 0, address);
 }
 
-void Unixbus::onClosed()
+void Unixbus::onBusClosed()
 {
 }
 
@@ -68,13 +69,15 @@ void Unixbus::onBusMessage(const std::string &data, int address)
 
 void Unixbus::onActivated(int fd, int e)
 {
+    if (!d_fd) {
+        fprintf(stderr, "BUG!! Unixbus::onActivated called after close\n");
+        abort();
+    }
     char buf[AFUNIX_MAX_PACKAGE_SIZE];
     int address;
     int r = afunix_recvfrom(d_fd, &buf, AFUNIX_MAX_PACKAGE_SIZE, MSG_DONTWAIT, &address);
-    if (r <  0) {
-        if (errno != EAGAIN) {
-            close();
-        }
+    if (r <  1) {
+        close();
         return;
     }
     onBusMessage(std::string(buf, r), address);
