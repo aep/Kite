@@ -7,6 +7,7 @@
 
 #include "EventLoop.hpp"
 #include "Process.hpp"
+#include "Timer.hpp"
 
 desserts("stdio loopback") {
     static std::string output;
@@ -17,7 +18,14 @@ desserts("stdio loopback") {
             : Kite::Process(ev)
         {
             popen("./stdio.exe");
-            write("derp\n", 5);
+            Kite::Timer::later(ev, [this](){
+                    write("herp\n", 5);
+                    return false;
+                    }, 100);
+            Kite::Timer::later(ev, [this](){
+                    write("derp\n", 5);
+                    return false;
+                    }, 200);
         }
 
     protected:
@@ -25,20 +33,21 @@ desserts("stdio loopback") {
         {
             char buf[1024];
             int len = read(buf, 1024);
-            if (len == 0) {
-                close();
-                ev()->exit(0);
-                return;
-            }
+            if (len < 1) return;
             output += std::string(buf,len);
-            closeWrite();
+            if (output.size() == 10)
+                closeWrite();
+        }
+        virtual void onClosing()
+        {
+            ev()->exit(0);
         }
     };
     std::shared_ptr<Kite::EventLoop> ev(new Kite::EventLoop);
     std::shared_ptr<Test>         ls(new Test(ev));
 
     ev->exec();
-    dessert (output == "derp\n");
+    dessert (output == "herp\nderp\n");
 }
 
 desserts("ls") {
@@ -57,12 +66,12 @@ desserts("ls") {
         {
             char buf[1024];
             int len = read(buf, 1024);
-            if (len == 0) {
-                close();
-                ev()->exit(0);
-                return;
-            }
+            if (len < 1) return;
             output += std::string(buf,len);
+        }
+        virtual void onClosing()
+        {
+            ev()->exit(0);
         }
     };
     std::shared_ptr<Kite::EventLoop> ev(new Kite::EventLoop);
