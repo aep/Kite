@@ -3,6 +3,7 @@
 #include <iostream>
 #include <algorithm>
 #include <time.h>
+#include <stdexcept>
 
 #ifndef CLOCK_MONOTONIC_RAW
 #warning "CLOCK_MONOTONIC_RAW undefined. Workaround might break"
