@@ -9,9 +9,9 @@ EXES=\
 	 http.exe \
 	 util.exe \
 	 process.exe \
-	 timer.exe \
 	 unixbus.exe \
 	 eventloop.exe \
+	 #timer.exe \
 
 
 ALL: $(EXES) stdio.exe

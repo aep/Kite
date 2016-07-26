@@ -1,0 +1,5 @@
+compiler:
+  - clang
+  - gcc
+language: C++
+script: cd tests && make test
