@@ -19,8 +19,8 @@ ALL: $(EXES) stdio.exe
 %.exe:  $(OBJECTS) %.o
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-test: $(EXES)
-	$(foreach e,$^,  timeout 10 ./$e &&) true
+test: $(EXES) stdio.exe
+	$(foreach e,$(EXES),  timeout 10 ./$e &&) true
 
 clean:
 	rm -f  ../*.o *.o *.exe
