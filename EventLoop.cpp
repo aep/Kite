@@ -71,10 +71,10 @@ int enableSignalFd()
     sigemptyset(&mask);
     sigaddset(&mask, SIGCHLD);
     //block SIGCHLD from being handled in the normal way
-    // (otherwise, the signalfd does not work)
+    //(otherwise, the signalfd does not work)
     if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1) {
-        throw std::runtime_error("signalfd");
-        perror("sigprocmask");
+        throw std::system_error(errno, std::system_category());
+        abort();
         return 0;
     }
 
@@ -82,8 +82,8 @@ int enableSignalFd()
     // SIGCHLD happens, i.e. when a child process terminates
     r = signalfd(-1, &mask, 0);
     if (r == -1) {
-        perror("signalfd");
-        throw std::runtime_error("signalfd");
+        throw std::system_error(errno, std::system_category());
+        abort();
         return 0;
     }
     return r;
@@ -101,14 +101,13 @@ EventLoop::~EventLoop()
 {
     close (p_intp[0]);
     close (p_intp[1]);
+    close (p_signalfd);
 }
 
 void EventLoop::deleteLater(Scope *s)
 {
     p_deleteme.push_back(ScopePtr<Scope>(s));
 }
-
-
 
 int EventLoop::exec()
 {
@@ -165,9 +164,7 @@ re_enter:
             it++;
         }
 
-
         int ret = poll(fds, pollnum, timeout);
-
 
         if (fds[1].revents) {
             //deliver signals
@@ -226,3 +223,4 @@ void EventLoop::exit(int e)
     }, 1, this, "exit");
     write(p_intp[1], "\n", 1);
 }
+

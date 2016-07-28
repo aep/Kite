@@ -46,7 +46,7 @@ desserts("loopback") {
         }
         virtual void onBusClosed() {
             closed++;
-            ev()->exit(0);
+            ev().lock()->exit(0);
         }
     };
 

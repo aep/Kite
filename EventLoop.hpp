@@ -36,7 +36,7 @@ namespace Kite  {
         void evAddSignal(int signal);
         void evRemoveSignal(int signal);
 
-        inline std::shared_ptr<EventLoop> ev() const { return p_Ev.lock();}
+        inline std::weak_ptr<EventLoop> ev() const { return p_Ev;}
     private:
         friend class EventLoop;
         virtual void onActivated(int fd, int events) = 0;
@@ -48,7 +48,7 @@ namespace Kite  {
     class EventLoop : public std::enable_shared_from_this<EventLoop>, public Scope {
     public:
         EventLoop();
-        ~EventLoop();
+        virtual ~EventLoop();
         int exec();
         void exit(int exitCode = 0);
 

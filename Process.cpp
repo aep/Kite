@@ -34,10 +34,10 @@ Process::Process(std::weak_ptr<EventLoop> ev)
 
 void Process::popen(const std::string &cmd)
 {
-    if (pipe2(d_pipein,     O_CLOEXEC) != 0) {
+    if (pipe2(d_pipein, O_CLOEXEC) != 0) {
         throw std::system_error(errno, std::system_category());
     }
-    if (pipe2(d_pipeout,    O_CLOEXEC) != 0) {
+    if (pipe2(d_pipeout, O_CLOEXEC) != 0) {
         throw std::system_error(errno, std::system_category());
     }
     fcntl(d_pipeout[0], F_SETFL, O_NONBLOCK);
@@ -70,9 +70,9 @@ void Process::popen(const std::string &cmd)
 
         execl("/bin/sh", "sh", "-c", cmd.c_str(), (char *)NULL);
         exit(1);
-    } else {
     }
-
+    ::close(d_pipein[0]);
+    ::close(d_pipeout[1]);
 }
 
 void Process::onSignal(int,int)
@@ -95,6 +95,7 @@ void Process::close()
     evRemove(d_pipeout[0]);
     ::close(d_pipein[1]);
     ::close(d_pipeout[0]);
+
     //kill(d_pid, SIGTERM);
     d_pid = 0;
 }
@@ -143,7 +144,7 @@ protected:
     }
     virtual void onClosing() override
     {
-        ev()->exit(0);
+        ev().lock()->exit(0);
         return;
     }
 
@@ -152,14 +153,14 @@ protected:
 std::string Process::shell(const std::string &cmd, int timeout)
 {
     std::shared_ptr<Kite::EventLoop> ev(new Kite::EventLoop);
+    std::weak_ptr<Kite::EventLoop>  wev(ev);
 
     if (timeout > 0) {
-        Kite::Timer::later(ev, [ev] () {
-                ev->exit(9);
+        Kite::Timer::later(ev, [wev] () {
+                wev.lock()->exit(9);
                 return false;
                 }, timeout, ev.get(), "process::shell:timeout");
     }
-
 
     std::shared_ptr<CollectorProcess>  p(new CollectorProcess(ev));
     p->popen(cmd);
@@ -168,5 +169,4 @@ std::string Process::shell(const std::string &cmd, int timeout)
         throw std::runtime_error("Process::shell timeout: " + cmd);
 
     return p->buffer;
-
 }

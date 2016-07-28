@@ -28,7 +28,7 @@ desserts("google") {
                 setHeaders(headers);
                 post("http://localhost:8000/", "turbo");
             } else {
-                ev()->exit(9);
+                ev().lock()->exit(9);
             }
         }
     };

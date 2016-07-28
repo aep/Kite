@@ -124,6 +124,12 @@ public:
     {
     }
 
+    virtual void onDeathNotify(const void *)
+    {
+        delete this;
+    }
+
+
 private:
     std::function<bool()> fn;
     //must be last on the callstack inside EventLoop because of delete this

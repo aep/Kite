@@ -20,7 +20,7 @@ protected:
         int len = read(buf, 1024);
         write(buf, len);
         if (len == 0) {
-            ev()->exit();
+            ev().lock()->exit();
         }
     }
 };

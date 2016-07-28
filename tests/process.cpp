@@ -41,7 +41,7 @@ desserts("stdio loopback") {
         }
         virtual void onClosing()
         {
-            ev()->exit(0);
+            ev().lock()->exit(0);
         }
     };
     std::shared_ptr<Kite::EventLoop> ev(new Kite::EventLoop);
@@ -72,7 +72,7 @@ desserts("ls") {
         }
         virtual void onClosing()
         {
-            ev()->exit(0);
+            ev().lock()->exit(0);
         }
     };
     std::shared_ptr<Kite::EventLoop> ev(new Kite::EventLoop);
@@ -95,10 +95,10 @@ desserts("alot of forks") {
         }
         virtual void onClosing()
         {
-            ev()->deleteLater(this);
+            ev().lock()->deleteLater(this);
             std::cerr << --counter << " children left " << std::endl;
             if (counter == 0) {
-                ev()->exit(0);
+                ev().lock()->exit(0);
             }
         }
     };
@@ -110,8 +110,10 @@ desserts("alot of forks") {
 }
 
 desserts("shell") {
-    std::string output = Kite::Process::shell("ls fixtures/testdir/");
-    dessert (output == "123\nabc\n");
+    for (int i = 0; i < 500; i++) {
+        std::string output = Kite::Process::shell("ls fixtures/testdir/");
+        dessert (output == "123\nabc\n");
+    }
 }
 
 int main(){}
