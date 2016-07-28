@@ -34,6 +34,7 @@ desserts("stdio loopback") {
             char buf[1024];
             int len = read(buf, 1024);
             if (len < 1) return;
+            std::cerr << std::string(buf,len) << std::endl;
             output += std::string(buf,len);
             if (output.size() == 10)
                 closeWrite();
@@ -78,6 +79,34 @@ desserts("ls") {
     std::shared_ptr<LS>         ls(new LS(ev));
     ev->exec();
     dessert (output == "123\nabc\n");
+}
+
+desserts("alot of forks") {
+
+    static int counter = 0;
+    class UselessProcess : public Kite::Process , public Kite::Scope
+    {
+    public:
+        UselessProcess(std::weak_ptr<Kite::EventLoop> ev)
+            : Kite::Process(ev)
+        {
+            popen("sleep 1");
+            std::cerr << ++counter << " children spawned " << std::endl;
+        }
+        virtual void onClosing()
+        {
+            ev()->deleteLater(this);
+            std::cerr << --counter << " children left " << std::endl;
+            if (counter == 0) {
+                ev()->exit(0);
+            }
+        }
+    };
+    std::shared_ptr<Kite::EventLoop> ev(new Kite::EventLoop);
+    for (int i = 0 ; i < 200 ; i++) {
+        new UselessProcess(ev);
+    }
+    ev->exec();
 }
 
 desserts("shell") {

@@ -4,11 +4,26 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
-#include "forkfd.h"
-
+#include <sys/prctl.h>
+#include <sys/signalfd.h>
+#include <sys/wait.h>
+#include <system_error>
 #include <iostream>
 
 using namespace Kite;
+
+
+
+
+class SigchildService : public Evented
+{
+public:
+    SigchildService(std::weak_ptr<EventLoop> ev)
+        : Evented(ev)
+    {
+
+    }
+};
 
 
 Process::Process(std::weak_ptr<EventLoop> ev)
@@ -19,15 +34,30 @@ Process::Process(std::weak_ptr<EventLoop> ev)
 
 void Process::popen(const std::string &cmd)
 {
-    pipe2(d_pipein,     O_CLOEXEC);
-    pipe2(d_pipeout,    O_CLOEXEC);
+    if (pipe2(d_pipein,     O_CLOEXEC) != 0) {
+        throw std::system_error(errno, std::system_category());
+    }
+    if (pipe2(d_pipeout,    O_CLOEXEC) != 0) {
+        throw std::system_error(errno, std::system_category());
+    }
     fcntl(d_pipeout[0], F_SETFL, O_NONBLOCK);
     evAdd(d_pipeout[0]);
+    evAddSignal(SIGCHLD);
 
-    d_forkfd = ::forkfd(FFD_CLOEXEC, &d_pid);
-    evAdd(d_forkfd);
+    //fork here
+    d_pid = fork();
+    if (d_pid < 0) {
+        perror("fork");
+        return;
+    }
 
     if (d_pid == 0) {
+
+        //unblock all signals in the new child, because we use signalfd,
+        //which must have blocked signals
+        sigset_t signal_set;
+        sigfillset(&signal_set);
+        sigprocmask(SIG_UNBLOCK, &signal_set, NULL);
 
         ::close(d_pipein[1]);
         ::close(d_pipeout[0]);
@@ -36,17 +66,26 @@ void Process::popen(const std::string &cmd)
         dup2(d_pipeout[1], STDOUT_FILENO);
         dup2(d_pipeout[1], STDERR_FILENO);
 
+        prctl(PR_SET_PDEATHSIG, SIGKILL);
+
         execl("/bin/sh", "sh", "-c", cmd.c_str(), (char *)NULL);
         exit(1);
+    } else {
     }
 
 }
 
-void Process::onActivated(int fd, int e)
+void Process::onSignal(int,int)
 {
-    if (fd == d_forkfd){
+    int status;
+    pid_t pid = waitpid(d_pid, &status, WNOHANG);
+    if (pid == d_pid) {
         close();
     }
+}
+
+void Process::onActivated(int fd, int e)
+{
     onReadActivated();
 }
 
@@ -54,10 +93,8 @@ void Process::close()
 {
     onClosing();
     evRemove(d_pipeout[0]);
-    evRemove(d_forkfd);
     ::close(d_pipein[1]);
     ::close(d_pipeout[0]);
-    forkfd_close(d_forkfd);
     //kill(d_pid, SIGTERM);
     d_pid = 0;
 }
@@ -100,12 +137,14 @@ protected:
     {
         char buf[1024];
         int len = read(buf, 1024);
-        if (len == 0) {
-            close();
-            ev()->exit(0);
-            return;
+        if (len >  0) {
+            buffer += std::string(buf,len);
         }
-        buffer += std::string(buf,len);
+    }
+    virtual void onClosing() override
+    {
+        ev()->exit(0);
+        return;
     }
 
 };

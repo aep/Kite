@@ -6,6 +6,8 @@
 #include <time.h>
 #include <iostream>
 #include <climits>
+#include <sys/signalfd.h>
+#include <signal.h>
 
 using namespace Kite;
 
@@ -24,12 +26,17 @@ Evented::~Evented()
         else
             it++;
     }
+
+    ev->p_signalevs.erase(this);
 }
 
 void Evented::evAdd(int fd, int events)
 {
     auto ev = p_Ev.lock();
-    ev->p_evs.insert(std::make_pair(fd, std::make_pair(this, events)));
+    auto mr = ev->p_evs.insert(std::make_pair(fd, std::make_pair(this, events)));
+    if (mr.second == false) {
+        throw std::runtime_error("Kite::Evented::evAdd already added");
+    }
 }
 
 void Evented::evRemove(int fd)
@@ -45,12 +52,49 @@ void Evented::evRemove(int fd)
     }
 }
 
+void Evented::evAddSignal(int signal)
+{
+    auto ev = p_Ev.lock();
+    ev->p_signalevs.insert(this);
+}
+
+void Evented::evRemoveSignal(int signal)
+{
+    auto ev = p_Ev.lock();
+    ev->p_signalevs.erase(this);
+}
+
+int enableSignalFd()
+{
+    int r = 0;
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGCHLD);
+    //block SIGCHLD from being handled in the normal way
+    // (otherwise, the signalfd does not work)
+    if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1) {
+        throw std::runtime_error("signalfd");
+        perror("sigprocmask");
+        return 0;
+    }
+
+    // create the file descriptor that will be readable when
+    // SIGCHLD happens, i.e. when a child process terminates
+    r = signalfd(-1, &mask, 0);
+    if (r == -1) {
+        perror("signalfd");
+        throw std::runtime_error("signalfd");
+        return 0;
+    }
+    return r;
+}
 
 EventLoop::EventLoop()
 {
     // wake up pipe to interrupt poll()
     pipe(p_intp);
     fcntl(p_intp[0], F_SETFL, O_NONBLOCK);
+    p_signalfd = enableSignalFd();
 }
 
 EventLoop::~EventLoop()
@@ -63,6 +107,8 @@ void EventLoop::deleteLater(Scope *s)
 {
     p_deleteme.push_back(ScopePtr<Scope>(s));
 }
+
+
 
 int EventLoop::exec()
 {
@@ -90,13 +136,16 @@ re_enter:
         }
 
 
-        int    pollnum = p_evs.size() + 1;
+        int    pollnum = p_evs.size() + 2;
         struct pollfd fds[pollnum];
 
         fds[0].fd = p_intp[0];
         fds[0].events = POLLIN;
 
-        int i = 1;
+        fds[1].fd = p_signalfd;
+        fds[1].events = POLLIN;
+
+        int i = 2;
 
         //copy list of ev fds because it might be modified inside activated(),
         //breaking our iterator
@@ -120,8 +169,18 @@ re_enter:
         int ret = poll(fds, pollnum, timeout);
 
 
+        if (fds[1].revents) {
+            //deliver signals
+            struct signalfd_siginfo siginfo;
+            ssize_t nbytes = ::read(p_signalfd, &siginfo, sizeof siginfo);
+            for (auto ev : evs) {
+                auto evented = ev.second.first;
+                evented->onSignal(siginfo.ssi_signo,  siginfo.ssi_fd);
+            }
+        }
 
-        i = 1;
+
+        i = 2;
         it = evs.begin();
         while (it != evs.end()) {
             if (fds[i].revents) {

@@ -15,7 +15,6 @@ SOURCES += \
 	$(THIS)Process.cpp \
 	$(THIS)Unixbus.cpp \
 	$(THIS)Serialport.cpp \
-	$(THIS)forkfd.cpp \
 	$(THIS)Scope.cpp \
 	$(THIS)HtmlStreamClient.cpp \
 	$(THIS)3rdparty/uri-parser/UriCodec.cpp \

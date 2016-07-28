@@ -30,16 +30,20 @@ namespace Kite  {
                 Scope *scope,
                 const char *name = "later");
     protected:
-
         void evAdd(int fd, int events = Read);
         void evRemove(int);
+
+        void evAddSignal(int signal);
+        void evRemoveSignal(int signal);
 
         inline std::shared_ptr<EventLoop> ev() const { return p_Ev.lock();}
     private:
         friend class EventLoop;
         virtual void onActivated(int fd, int events) = 0;
+        virtual void onSignal(int signal, int fd) {};
         std::weak_ptr<EventLoop> p_Ev;
     };
+
 
     class EventLoop : public std::enable_shared_from_this<EventLoop>, public Scope {
     public:
@@ -49,15 +53,18 @@ namespace Kite  {
         void exit(int exitCode = 0);
 
         void deleteLater(Scope *);
+
     private:
         friend class Timer;
         friend class Evented;
+        std::unordered_set <Evented*> p_signalevs;
         std::map <int, std::pair<Evented*, int> > p_evs;
         std::unordered_set<Timer* > p_timers;
         std::vector<ScopePtr<Scope> > p_deleteme;
         bool p_running;
         int  p_exitCode;
         int  p_intp[2];
+        int  p_signalfd;
     };
 }
 
