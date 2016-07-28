@@ -316,10 +316,12 @@ void SecureSocketPrivate::d_connect()
 
     if (useTls) {
         state = SecureSocket::Connected;
+        evRemove(fd);
         evAdd(fd, Kite::Evented::Read);
         p->onConnected();
     } else {
         debugprintf("waiting for write ready\n");
+        evRemove(fd);
         evAdd(fd, Kite::Evented::Read | Kite::Evented::Write);
     }
 }
