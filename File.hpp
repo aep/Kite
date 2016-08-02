@@ -16,8 +16,13 @@ namespace Kite {
 
         virtual void close();
     protected:
+
+        virtual void onClosing() {}
+
         void setFile(int fd);
         int d_fd;
+
+
 
     };
 };

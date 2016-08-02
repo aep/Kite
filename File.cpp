@@ -29,7 +29,7 @@ void File::setFile(int fd)
 int File::read(char *buf, int len)
 {
     int r = ::read(d_fd, buf, len);
-    if (r < 0) {
+    if (r < 1) {
         if (errno != EAGAIN)
             close();
         return 0;
@@ -44,6 +44,7 @@ int File::write(const char *buf, int len)
 void File::close()
 {
     if (d_fd) {
+        onClosing();
         ::close(d_fd);
         evRemove(d_fd);
         d_fd = 0;

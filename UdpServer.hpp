@@ -4,33 +4,9 @@
 #include <string>
 #include <memory>
 #include "EventLoop.hpp"
+#include "Internet.hpp"
 
 namespace Kite {
-
-    class UdpServer;
-    class InternetAddress
-    {
-    public:
-
-        enum SpecialAddress
-        {
-            Any
-        };
-
-        InternetAddress(SpecialAddress sp = Any, uint16_t port = 0);
-        InternetAddress(const std::string &str, uint16_t port = 0);
-        ~InternetAddress();
-
-        std::string address() const;
-        uint16_t port() const;
-
-        bool operator==(const InternetAddress& other) const;
-        bool operator<(const Kite::InternetAddress &other) const;
-    private:
-        struct space {char space[60];};
-        std::shared_ptr <space> p;
-        friend class UdpServer;
-    };
 
     class UdpServer : public Kite::Evented
     {

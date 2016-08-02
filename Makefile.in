@@ -10,6 +10,7 @@ SOURCES += \
 	$(THIS)Timer.cpp \
 	$(THIS)MqttClient.cpp \
 	$(THIS)UdpServer.cpp \
+	$(THIS)TcpServer.cpp \
 	$(THIS)HttpClient.cpp \
 	$(THIS)File.cpp \
 	$(THIS)Process.cpp \
@@ -18,4 +19,5 @@ SOURCES += \
 	$(THIS)Scope.cpp \
 	$(THIS)HtmlStreamClient.cpp \
 	$(THIS)3rdparty/uri-parser/UriCodec.cpp \
+	$(THIS)3rdparty/http-parser/http_parser.c \
 
