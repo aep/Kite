@@ -9,6 +9,13 @@
 #include "Process.hpp"
 #include "Timer.hpp"
 
+desserts("shells") {
+    std::string output = Kite::Process::shell("echo -n lol");
+    dessert(output == "lol");
+    output = Kite::Process::shell("echo -n $( echo -n 'herp:derp' | cut -d ':' -f 2)");
+    dessert(output == "derp");
+}
+#if 0
 desserts("stdio loopback") {
     static std::string output;
     class Test: public Kite::Process
@@ -115,5 +122,6 @@ desserts("shell") {
         dessert (output == "123\nabc\n");
     }
 }
+#endif
 
 int main(){}

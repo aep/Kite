@@ -144,6 +144,15 @@ protected:
     }
     virtual void onClosing() override
     {
+        //read all leftover
+        for (;;) {
+            char buf[1024];
+            int len = read(buf, 1024);
+            if (len < 1)
+                break;
+            buffer += std::string(buf,len);
+        }
+
         ev().lock()->exit(0);
         return;
     }
