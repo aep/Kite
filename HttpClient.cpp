@@ -85,7 +85,7 @@ public:
         } else {
             if (line == "\r\n") {
                 state = HttpClient::HeaderCompleted;
-                p->onHeadersReady(responseHeaders);
+                p->onHeadersReady(responseCode, responseHeaders);
             } else {
                 std::istringstream ss(line);
                 std::string key;

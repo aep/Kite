@@ -8,6 +8,12 @@ bool DeathNotificationReceiver::isDead() const
     return dd_scope_captured && (dd_cscope == nullptr);
 }
 
+DeathNotificationReceiver::DeathNotificationReceiver()
+{
+    dd_scope_captured = false;
+    dd_cscope = nullptr;
+}
+
 DeathNotificationReceiver::DeathNotificationReceiver(Scope *c)
 {
     dd_scope_captured = (c != nullptr);
@@ -24,7 +30,18 @@ DeathNotificationReceiver::DeathNotificationReceiver(const DeathNotificationRece
     if (dd_cscope) {
         dd_cscope->addDeathNotificationReceiver(this);
     }
+}
 
+void DeathNotificationReceiver::setNotificationScope(Scope *c)
+{
+    if (dd_cscope) {
+        dd_cscope->removeDeathNotificationReceiver(this);
+    }
+    dd_scope_captured = (c != nullptr);
+    dd_cscope = c;
+    if (dd_cscope) {
+        dd_cscope->addDeathNotificationReceiver(this);
+    }
 }
 
 DeathNotificationReceiver::~DeathNotificationReceiver()
@@ -34,7 +51,7 @@ DeathNotificationReceiver::~DeathNotificationReceiver()
     }
 }
 
-void DeathNotificationReceiver::doDeathNotify(const void *t)
+void DeathNotificationReceiver::doDeathNotify(Scope *t)
 {
     dd_cscope = nullptr;
     onDeathNotify(t);

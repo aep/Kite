@@ -14,6 +14,8 @@ namespace Kite {
         virtual int read(char *buf, int len);
         virtual int write(const char *buf, int len);
 
+        int open(const char *path, int oflag);
+
         virtual void close();
     protected:
 

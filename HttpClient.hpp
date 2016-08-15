@@ -30,7 +30,7 @@ public:
 
     int writeBody(const char *data, int len);
 protected:
-    virtual void onHeadersReady(const std::map<std::string,std::string> &responseHeaders) {}
+    virtual void onHeadersReady(int responseCode, const std::map<std::string,std::string> &responseHeaders) {}
     virtual void onFinished(Status status, int responseCode, const std::string &body){};
     virtual void onReadActivated();
 

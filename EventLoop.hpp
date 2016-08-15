@@ -29,6 +29,9 @@ namespace Kite  {
                 const std::function<bool()> &fn,
                 Scope *scope,
                 const char *name = "later");
+
+        inline std::weak_ptr<EventLoop> ev() const { return p_Ev;}
+
     protected:
         void evAdd(int fd, int events = Read);
         void evRemove(int);
@@ -36,7 +39,6 @@ namespace Kite  {
         void evAddSignal(int signal);
         void evRemoveSignal(int signal);
 
-        inline std::weak_ptr<EventLoop> ev() const { return p_Ev;}
     private:
         friend class EventLoop;
         virtual void onActivated(int fd, int events) = 0;

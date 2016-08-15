@@ -14,17 +14,19 @@ namespace Kite  {
     class Scope;
     class DeathNotificationReceiver {
     public:
+        DeathNotificationReceiver();
         DeathNotificationReceiver(Scope *c);
         DeathNotificationReceiver(const DeathNotificationReceiver& a);
         ~DeathNotificationReceiver();
         bool isDead() const;
     protected:
-        virtual void onDeathNotify(const void *) {}
+        void setNotificationScope(Scope *);
+        virtual void onDeathNotify(Scope *) {}
     private:
         friend class Scope;
         bool dd_scope_captured;
         Scope *dd_cscope;
-        void doDeathNotify(const void *);
+        void doDeathNotify(Scope *);
     };
 
     class Scope {
