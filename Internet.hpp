@@ -26,12 +26,9 @@ namespace Kite {
 
         bool operator==(const InternetAddress& other) const;
         bool operator<(const Kite::InternetAddress &other) const;
-    private:
+
         struct space {char space[60];};
         std::shared_ptr <space> p;
-        friend class UdpServer;
-        friend class TcpConnection;
-        friend class TcpServer;
     };
 };
 
