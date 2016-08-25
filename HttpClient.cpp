@@ -277,3 +277,35 @@ void HttpClient::setHeaders(std::map<std::string,std::string> requestHeaders)
 }
 
 
+
+
+class CBPost : public Kite::HttpClient
+{
+public:
+    CompletedCallback cb;
+    CBPost(std::weak_ptr<Kite::EventLoop> _ev, CompletedCallback cb)
+        : Kite::HttpClient (_ev)
+        , cb(cb)
+    {
+    }
+    virtual void onFinished(Status status, int responseCode, const std::string &body) override
+    {
+        if (cb) {
+            cb(status, responseCode, body);
+        }
+        //TODO: what if ev is dead?
+        ev().lock()->deleteLater(this);
+    }
+};
+
+void HttpClient::post(std::weak_ptr<Kite::EventLoop> ev, const std::string &url, const std::string &body, CompletedCallback cb)
+{
+    auto e = new CBPost(ev, cb);
+    e->post(url, body);
+}
+
+void HttpClient::get (std::weak_ptr<Kite::EventLoop> ev, const std::string &url, CompletedCallback cb)
+{
+    auto e = new CBPost(ev, cb);
+    e->get(url);
+}

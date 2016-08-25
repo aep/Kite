@@ -29,6 +29,12 @@ public:
     void setBodyBufferSize(int size);
 
     int writeBody(const char *data, int len);
+
+
+    typedef std::function<void(Status status, int responseCode, const std::string &body)> CompletedCallback;
+    static void post(std::weak_ptr<Kite::EventLoop> ev, const std::string &url, const std::string &body, CompletedCallback = CompletedCallback());
+    static void get (std::weak_ptr<Kite::EventLoop> ev, const std::string &url, CompletedCallback = CompletedCallback());
+
 protected:
     virtual void onHeadersReady(int responseCode, const std::map<std::string,std::string> &responseHeaders) {}
     virtual void onFinished(Status status, int responseCode, const std::string &body){};
