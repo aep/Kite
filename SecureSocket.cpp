@@ -188,10 +188,6 @@ bool SecureSocket::setClientKeyFile(const std::string &path)
 void SecureSocket::disconnect()
 {
     debugprintf("SecureSocket::disconnect()\n");
-    onDisconnected(p->state);
-    if (p->state == Connected || p->state == Connecting) {
-        p->state = Disconnected;
-    }
 
     int fd = 0;
     BIO_get_fd(p->bio, &fd);
@@ -205,13 +201,23 @@ void SecureSocket::disconnect()
             rebind_map.erase(e);
     }
 
-    if (p->bio)
+    if (p->bio) {
+        debugprintf("SecureSocket::BIO_ssl_shutdown\n");
+        BIO_set_close(p->bio, BIO_CLOSE);
+        BIO_reset(p->bio);
         BIO_ssl_shutdown(p->bio);
+    }
 
+    if (p->state == Connected || p->state == Connecting) {
+        p->state = Disconnected;
+        onDisconnected(p->state);
+    }
 }
 
 void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeout, bool tls)
 {
+    disconnect();
+
     p->useTls = tls;
     p->reset(timeout);
     p->state   = Connecting;
