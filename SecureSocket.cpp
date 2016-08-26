@@ -38,8 +38,8 @@ public:
     virtual bool onExpired() {
         if (state == Kite::SecureSocket::Connecting) {
             errorMessage = "Connection timed out";
-            state = SecureSocket::TransportErrror;
             p->disconnect();
+            state = SecureSocket::TransportErrror;
         }
         return false;
     }
@@ -232,8 +232,8 @@ void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeo
     }
     if (!p->bio) {
         p->errorMessage = "BIO_new_ssl_connect returned NULL";
-        p->state        = SecureSetupError;
         disconnect();
+        p->state        = SecureSetupError;
         return;
     }
 
@@ -243,8 +243,8 @@ void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeo
         BIO_get_ssl(p->bio, &p->ssl);
         if (!(p->ssl)) {
             p->errorMessage = "BIO_get_ssl returned NULL";
-            p->state        = SecureSetupError;
             disconnect();
+            p->state        = SecureSetupError;
             return;
         }
 
@@ -252,8 +252,8 @@ void SecureSocket::connect(const std::string &hostname, int port, uint64_t timeo
         auto cb = [](SSL *ssl, X509 **x509, EVP_PKEY **pkey) {
             SecureSocket *that = rebind_map[ssl];
             that->p->errorMessage = "Client Certificate Requested\n";
-            that->p->state = SecureClientCertificateRequired;
             that->disconnect();
+            that->p->state = SecureClientCertificateRequired;
             return 0;
         };
         SSL_CTX_set_client_cert_cb(p->ssl_ctx, cb);
@@ -283,6 +283,7 @@ void SecureSocketPrivate::d_connect()
                     }, 100, this, "BIO_should_retry");
             return;
         }
+        p->disconnect();
         if (state != SecureSocket::SecureClientCertificateRequired) {
             const char *em = ERR_reason_error_string(ERR_get_error());
             debugprintf("BIO_new_ssl_connect failed: %u (0x%x)\n", r, r);
@@ -295,7 +296,6 @@ void SecureSocketPrivate::d_connect()
             errorMessage = std::string(em ? strdup(em) : "??");
             state        = SecureSocket::TransportErrror;
         }
-        p->disconnect();
         return;
     }
 
@@ -305,8 +305,8 @@ void SecureSocketPrivate::d_connect()
             std::stringstream str;
             str << "Secure Peer Verification Errror " << result;
             errorMessage = str.str();
-            state        = SecureSocket::SecurePeerNotVerified;
             p->disconnect();
+            state        = SecureSocket::SecurePeerNotVerified;
             return;
         }
     }
@@ -315,8 +315,8 @@ void SecureSocketPrivate::d_connect()
     BIO_get_fd(bio, &fd);
     if (fd == 0) {
         errorMessage = "BIO_get_fd returned 0";
-        state        = SecureSocket::SecureSetupError;
         p->disconnect();
+        state        = SecureSocket::SecureSetupError;
         return;
     }
 
