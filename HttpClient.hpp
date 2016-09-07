@@ -43,7 +43,6 @@ protected:
     void onActivated (int) override final;
     void onConnected () override final;
     void onDisconnected(SocketState state) override final;
-
 private:
     friend class HttpClientPrivate;
     HttpClientPrivate *p;

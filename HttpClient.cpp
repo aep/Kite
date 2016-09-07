@@ -11,15 +11,25 @@
 using namespace Kite;
 
 
-class Kite::HttpClientPrivate
+class Kite::HttpClientPrivate : public Kite::Timer
 {
 public:
-    HttpClientPrivate()
+    HttpClientPrivate(std::weak_ptr<Kite::EventLoop> ev)
+        : Kite::Timer(ev)
     {
+        timeout = 5000;
         state = 0;
         responseCode = 999;
         maxBodyBuffer = 2048;
         d_post_io_length = 0;
+    }
+
+    bool onExpired() override final
+    {
+        std::cerr << "warning: Kite::HttpClient receive timeout" << std::endl;
+        responseCode = 998;
+        p->disconnect();
+        return false;
     }
 
     void setUrl(const std::string &url, const std::string &verb)
@@ -108,6 +118,8 @@ public:
     std::map<std::string,std::string> requestHeaders;
     std::map<std::string,std::string> responseHeaders;
 
+    int timeout;
+
     int responseCode;
     int d_content_length;
     HttpClient::Status status;
@@ -136,7 +148,7 @@ public:
 
 HttpClient::HttpClient(std::weak_ptr<Kite::EventLoop> ev)
     : Kite::SecureSocket(ev)
-    , p(new HttpClientPrivate)
+    , p(new HttpClientPrivate(ev))
 {
     p->p = this;
 }
@@ -180,6 +192,7 @@ void HttpClient::setBodyBufferSize(int size)
 
 void HttpClient::onActivated(int events)
 {
+    p->reset(p->timeout);
     if (p->state < HttpClient::HeaderCompleted) {
         if (p->p_buf.length() >= p->maxBodyBuffer) {
             std::cerr << "warning: internal HttpClient buffer overflow" << std::endl;
@@ -255,6 +268,7 @@ void HttpClient::onConnected() {
     } else {
         write(p->d_post_body.c_str(), p->d_post_body.length());
     }
+    p->reset(p->timeout);
 }
 
 int HttpClient::writeBody(const char *data, int len)

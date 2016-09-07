@@ -20,14 +20,7 @@ protected:
         std::cerr << responseCode << std::endl;
         std::cerr << body;
 
-        if (e++ == 0) {
-            std::map<std::string, std::string> headers;
-            headers["X-DERP"]=  "funnies";
-            setHeaders(headers);
-            post("http://localhost:8000/", "turbo");
-        } else {
-            ev()->exit(9);
-        }
+        ev().lock()->exit(9);
     }
 };
 
@@ -37,7 +30,7 @@ int main(int argc, char **argv)
     std::shared_ptr<MyClient>        client(new MyClient(ev));
 
     client->setCaFile("/etc/ssl/cert.pem");
-    client->get("https://google.com/stulle/hans");
+    client->get("http://192.168.10.57/istatus.htm");
 
     return ev->exec();
 }

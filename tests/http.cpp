@@ -7,6 +7,7 @@
 
 
 desserts("google") {
+
     class MyClient : public Kite::HttpClient
     {
     public:
@@ -34,10 +35,19 @@ desserts("google") {
     };
 
     std::shared_ptr<Kite::EventLoop> ev(new Kite::EventLoop);
-    std::shared_ptr<MyClient>        client(new MyClient(ev));
 
-    client->setCaFile("/etc/ssl/cert.pem");
-    client->get("https://google.com/stulle/hans");
+    //will timeout
+    Kite::HttpClient::get(ev, "http://localhost:4000", [ev](Kite::HttpClient::Status status, int responseCode, const std::string &body){
+
+            std::cerr << "1 " << responseCode << std::endl;
+
+            MyClient *client(new MyClient(ev));
+            client->setCaFile("/etc/ssl/cert.pem");
+            client->get("https://google.com/stulle/hans");
+    });
+
+
+    std::cerr << "ev::exec" << std::endl;
 
     ev->exec();
 }
