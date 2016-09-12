@@ -81,11 +81,11 @@ protected:
         fprintf(stderr, "> downloading %d%% (%.1f %cb of %.1f %cb at %.1f %cb/s)                    \r",
                 pc, displayProgress, progressSign, total, totalSign, speeds, speedSign);
 
-        //::write(fileno(stdout), buf, len);
+        ::write(fileno(stdout), buf, len);
     }
     virtual void onFinished(Kite::HttpClient::Status status, int exitCode, const std::string& body) override
     {
-        ev()->exit(0);
+        ev().lock()->exit(0);
         fprintf(stderr, "\n> done. exitCode: %d, errorMessage: %s\n", exitCode, errorMessage().c_str());
     }
 

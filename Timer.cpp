@@ -34,7 +34,7 @@ uint64_t Timer::now()
     if (clock_gettime(CLOCK_REALTIME, &begin)) {
         throw std::runtime_error("Kite::Timer: no clock :(");
     }
-    return begin.tv_sec  * 1000
+    return uint64_t(begin.tv_sec)  * 1000
          + begin.tv_nsec * 1e-6;
 }
 
@@ -50,8 +50,8 @@ uint64_t Timer::reset(uint64_t exp)
         p_start = 0;
         return el;
     }
-    p_start = begin.tv_sec  * 1000
-            + begin.tv_nsec * 1e-6;
+    p_start = uint64_t(begin.tv_sec)  * 1000
+        + begin.tv_nsec * 1e-6;
 
     // add if was dead before and now active
     auto ev = p_ev.lock();
@@ -83,7 +83,7 @@ uint64_t Timer::elapsed()
     }
 
     /* Start time in millis */
-    uint64_t now = current.tv_sec  * 1000
+    uint64_t now = uint64_t(current.tv_sec)  * 1000
                  + current.tv_nsec * 1e-6;
     return now - p_start;
 }
