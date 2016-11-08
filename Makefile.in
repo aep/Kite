@@ -4,20 +4,21 @@ CXXFLAGS += -flto -std=c++11 -I$(THIS)
 LDFLAGS  += -flto -lpthread -lssl -lcrypto
 
 SOURCES += \
-	$(THIS)EventLoop.cpp \
-	$(THIS)SecureSocket.cpp  \
-	$(THIS)Stdio.cpp  \
-	$(THIS)Timer.cpp \
-	$(THIS)MqttClient.cpp \
-	$(THIS)UdpServer.cpp \
-	$(THIS)TcpServer.cpp \
-	$(THIS)HttpClient.cpp \
-	$(THIS)File.cpp \
-	$(THIS)Process.cpp \
-	$(THIS)Unixbus.cpp \
-	$(THIS)Serialport.cpp \
-	$(THIS)Scope.cpp \
-	$(THIS)HtmlStreamClient.cpp \
-	$(THIS)3rdparty/uri-parser/UriCodec.cpp \
 	$(THIS)3rdparty/http-parser/http_parser.c \
+	$(THIS)3rdparty/uri-parser/UriCodec.cpp \
+	$(THIS)DomainNameResolver.cpp \
+	$(THIS)EventLoop.cpp \
+	$(THIS)File.cpp \
+	$(THIS)HtmlStreamClient.cpp \
+	$(THIS)HttpClient.cpp \
+	$(THIS)MqttClient.cpp \
+	$(THIS)Process.cpp \
+	$(THIS)Scope.cpp \
+	$(THIS)SecureSocket.cpp  \
+	$(THIS)Serialport.cpp \
+	$(THIS)Stdio.cpp  \
+	$(THIS)TcpServer.cpp \
+	$(THIS)Timer.cpp \
+	$(THIS)UdpServer.cpp \
+	$(THIS)Unixbus.cpp \
 

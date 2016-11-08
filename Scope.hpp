@@ -11,6 +11,14 @@
  */
 
 namespace Kite  {
+
+    class NoCopy {
+    public:
+        NoCopy() {}
+    private:
+        NoCopy(const NoCopy&o) { throw "NOCOPY"; }
+    };
+
     class Scope;
     class DeathNotificationReceiver {
     public:

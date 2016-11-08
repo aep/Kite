@@ -34,6 +34,7 @@ int File::read(char *buf, int len)
             close();
         return 0;
     }
+    return r;
 }
 
 int File::write(const char *buf, int len)
