@@ -1,8 +1,11 @@
+![logo](/docs/Kite.png?raw=true)
+
+
 Kite is "kind of like Qt" for embedded
 -------------------------------------
 
 Also kind of like node.js. Except fast, compiled, and available to most embedded platforms.
-(embedded are shitty plastic boxes that can barely run a linux kernel, not raspberry pi, doh)
+(embedded are cheap plastic boxes that can barely run a linux kernel, not raspberry pi, doh)
 
 Kite is alot more stl than Qt
 
@@ -109,8 +112,7 @@ How to "build" Kite
 Kite is a bunch of C++ files that are designed to work on modern unix only.
 It has no configure, no premake, no bullshit. Just naked C++. Just type 'make'.
 
-Kite isn't a library, because all distros are garbage.
-Probably the best way to use it, is as git submodule in your project.
+Kite isn't shipped as linkable so file. The best way to use it, is as git submodule in your project.
 Then just include Makefile.in in your makefile. It's already prepared with relative paths.
 
 Don't bother picking individual files. It's 2016, the compiler knows better than you.
