@@ -23,6 +23,7 @@ public:
     SSL     *ssl; //do note delete, is a ref from bio
     SecureSocket::SocketState state;
     std::string errorMessage;
+    bool skipPeerVerification;
 
     bool useTls;
 
@@ -34,6 +35,7 @@ public:
         , Kite::Timer(ev)
     {
         KITE_TIMER_DEBUG_NAME(this, "Kite::SecureSocketPrivate::connectionTimout");
+        skipPeerVerification = false;
     }
     virtual bool onExpired() {
         if (state == Kite::SecureSocket::Connecting) {
@@ -299,7 +301,7 @@ void SecureSocketPrivate::d_connect()
         return;
     }
 
-    if (useTls) {
+    if (useTls && !skipPeerVerification) {
         auto result = SSL_get_verify_result(ssl);
         if (result != X509_V_OK) {
             std::stringstream str;
@@ -360,6 +362,11 @@ int SecureSocket::read (char *data, int len)
 const std::string &SecureSocket::errorMessage() const
 {
     return p->errorMessage;
+}
+
+void SecureSocket::skipPeerVerification(bool t)
+{
+    p->skipPeerVerification = t;
 }
 
 void SecureSocket::flush()

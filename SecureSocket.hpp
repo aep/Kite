@@ -40,6 +40,8 @@ namespace Kite {
         void flush();
 
         const std::string &errorMessage() const;
+
+        void skipPeerVerification(bool);
     protected:
         virtual void onConnected(){}
         virtual void onDisconnected(SocketState state){}
