@@ -4,6 +4,7 @@
 #include <openssl/err.h>
 #include <sstream>
 #include <iostream>
+#include <cstring>
 
 #include "Scope.hpp"
 #include "Timer.hpp"

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <functional>
 #include "Scope.hpp"
 
 
