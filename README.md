@@ -1,3 +1,11 @@
+warning: DEPRECATED
+--------------------
+
+this is decprecated, as i have fully embraced rust. There's a bunch of critical security bugs that i dont intend fixing. 
+So just dont use this.
+
+
+
 ![logo](/docs/Kite.png?raw=true)
 
 
